@@ -1,0 +1,14 @@
+body {
+    overflow-y: hidden;
+    margin: 0;
+}
+
+.app {
+    display: flex;
+    flex-direction: row;
+    min-height: 100vh;
+}
+
+.activity-bar-container {
+    flex: 0 0 50px;
+}
