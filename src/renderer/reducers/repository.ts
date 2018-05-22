@@ -11,7 +11,7 @@ import { ICommit, IError } from '../types';
 import * as path from 'path';
 
 const initialState: IRepositoryState = {
-	repoPath: path.resolve(__dirname, '..', '..', '.git'),
+	repoPath: path.resolve(__dirname, '..', '..', '..', '.git'),
 	isLoading: false,
 	isRefreshing: false,
 	commits: {

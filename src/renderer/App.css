@@ -11,4 +11,13 @@ body {
 
 .activity-bar-container {
     flex: 0 0 50px;
+    border-right-style: solid;
+    border-width: 1px;
+    border-color: rgba(0, 0, 0, 0.2);
+}
+
+.split-pane-container {
+    display: flex;
+    flex-direction: column;
+    min-width: 100vw
 }
