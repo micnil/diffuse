@@ -42,8 +42,7 @@ export default function comparison(state: IComparisonState = initialState, actio
 				filesByHash: action.payload.filesByHash,
 				fromHash: fromHash,
 				toHash: toHash,
-				selectedOldFile: action.payload.diffsByHash[fromHash][toHash].patches[0].originalFile,
-				selectedNewFile: action.payload.diffsByHash[fromHash][toHash].patches[0].modifiedFile
+				selectedPatch: action.payload.diffsByHash[fromHash][toHash].patches[0],
 			});
 		case CREATE_DIFF_FAILURE:
 			return Object.assign({}, state, {
