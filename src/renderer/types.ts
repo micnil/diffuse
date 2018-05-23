@@ -22,7 +22,7 @@ export interface IError {
 	callstack?: string;
 }
 
-export enum DiffStatus {
+export enum PatchStatus {
 	Added = 'Added',
 	Copied = 'Copied',
 	Deleted = 'Deleted',
@@ -42,9 +42,9 @@ export interface IDiffHunk {
 }
 
 export interface IPatch {
-	status: DiffStatus;
-	newFile: string;
-	oldFile: string;
+	status: PatchStatus;
+	modifiedFile: string;
+	originalFile: string;
 }
 
 export interface IDiff {
@@ -76,5 +76,24 @@ export interface IComparison {
 		}
 	};
 }
+
+// export interface IComparison2 {
+// 	allHashes: string[];
+// 	diffsByHash: {
+// 		[fromHash: string]: {
+// 			[toHash: string]: IDiff
+// 		}
+// 	};
+// 	filesByHash: {
+// 		[hash: string]: {
+// 			byFile: {
+// 				[file: string]: IFile
+// 			}
+// 			allFiles: string[]
+// 		}
+// 	};
+// 	allPatches: string[];
+// 	patchesById
+// }
 
 export type Dispatch = ReduxDispatch<IState>;

@@ -37,11 +37,7 @@ export const createComparison = (hashes: string[]) => {
 	};
 };
 
-export const selectPatch = (patch: IPatch) => createAction(SELECT_PATCH,
-	{
-		newFile: patch.newFile,
-		oldFile: patch.oldFile
-	});
+export const selectPatch = (patch: IPatch) => createAction(SELECT_PATCH, { patch });
 
 const actions = {
 	createDiffRequest,

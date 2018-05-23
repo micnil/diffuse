@@ -1,4 +1,4 @@
-import { IError, IComparison } from '../types';
+import { IError, IComparison, IPatch } from '../types';
 import {
 	AnyAction,
 	CREATE_DIFF_REQUEST,
@@ -10,8 +10,7 @@ import {
 export interface IComparisonState extends IComparison {
 	fromHash: string;
 	toHash: string;
-	selectedOldFile: string;
-	selectedNewFile: string;
+	selectedPatch?: IPatch;
 	isLoading: Boolean;
 	error?: IError;
 }
@@ -20,8 +19,7 @@ const initialState: IComparisonState = {
 	isLoading: false,
 	fromHash: '',
 	toHash: '',
-	selectedOldFile: '',
-	selectedNewFile: '',
+	selectedPatch: undefined,
 	allHashes: [],
 	diffsByHash: {},
 	filesByHash: {},
@@ -44,8 +42,8 @@ export default function comparison(state: IComparisonState = initialState, actio
 				filesByHash: action.payload.filesByHash,
 				fromHash: fromHash,
 				toHash: toHash,
-				selectedOldFile: action.payload.diffsByHash[fromHash][toHash].patches[0].oldFile,
-				selectedNewFile: action.payload.diffsByHash[fromHash][toHash].patches[0].newFile
+				selectedOldFile: action.payload.diffsByHash[fromHash][toHash].patches[0].originalFile,
+				selectedNewFile: action.payload.diffsByHash[fromHash][toHash].patches[0].modifiedFile
 			});
 		case CREATE_DIFF_FAILURE:
 			return Object.assign({}, state, {
@@ -54,8 +52,7 @@ export default function comparison(state: IComparisonState = initialState, actio
 			});
 		case SELECT_PATCH:
 			return Object.assign({}, state, {
-				selectedOldFile: action.payload.oldFile,
-				selectedNewFile: action.payload.newFile,
+				selectedPatch: action.payload.patch,
 			});
 		default:
 			return state;

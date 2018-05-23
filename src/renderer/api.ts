@@ -1,5 +1,5 @@
 import * as Git from 'simple-git/promise';
-import { ICommit, IComparison, IDiff, IFile, DiffStatus } from './types';
+import { ICommit, IComparison, IDiff, IFile, PatchStatus } from './types';
 
 export default interface Api {
 	getCommits(repoPath: string, numCommits: number): Promise<ICommit[]>;
@@ -68,22 +68,22 @@ export async function diffCommits(repoPath: string, hashes: string[]): Promise<I
 			let diff: IDiff = parseDiffNameStatus(diffNameStatusRaw, hashes[from], hashes[to]);
 
 			for (let patch of diff.patches) {
-				if (!comparisons.filesByHash[diff.to].byFile[patch.newFile] && patch.newFile) {
+				if (!comparisons.filesByHash[diff.to].byFile[patch.modifiedFile] && patch.modifiedFile) {
 					// get new file
-					let newFileBlameRaw = await git.raw(['blame', '-s', '-l', diff.to, '--', patch.newFile]);
+					let newFileBlameRaw = await git.raw(['blame', '-s', '-l', diff.to, '--', patch.modifiedFile]);
 
-					let newFile = parseBlame(newFileBlameRaw, diff.to, patch.newFile);
-					comparisons.filesByHash[diff.to].allFiles.push(patch.newFile);
-					comparisons.filesByHash[diff.to].byFile[patch.newFile] = newFile;
+					let newFile = parseBlame(newFileBlameRaw, diff.to, patch.modifiedFile);
+					comparisons.filesByHash[diff.to].allFiles.push(patch.modifiedFile);
+					comparisons.filesByHash[diff.to].byFile[patch.modifiedFile] = newFile;
 				}
 
-				if (!comparisons.filesByHash[diff.from].byFile[patch.oldFile] && patch.oldFile) {
+				if (!comparisons.filesByHash[diff.from].byFile[patch.originalFile] && patch.originalFile) {
 					// get old file
-					let oldFileBlameRaw = await git.raw(['blame', '-s', '-l', diff.from, '--', patch.oldFile]);
+					let oldFileBlameRaw = await git.raw(['blame', '-s', '-l', diff.from, '--', patch.originalFile]);
 
-					let oldFile = parseBlame(oldFileBlameRaw, diff.from, patch.oldFile);
-					comparisons.filesByHash[diff.from].allFiles.push(patch.oldFile);
-					comparisons.filesByHash[diff.from].byFile[patch.oldFile] = oldFile;
+					let oldFile = parseBlame(oldFileBlameRaw, diff.from, patch.originalFile);
+					comparisons.filesByHash[diff.from].allFiles.push(patch.originalFile);
+					comparisons.filesByHash[diff.from].byFile[patch.originalFile] = oldFile;
 				}
 			}
 
@@ -159,40 +159,40 @@ function parseDiffNameStatus(raw: string, from: string, to: string): IDiff {
 
 		let oldFile;
 		let newFile;
-		let diffStatus: DiffStatus;
+		let diffStatus: PatchStatus;
 		switch (parts[0].charAt(0)) {
-			case 'A': diffStatus = DiffStatus.Added;
+			case 'A': diffStatus = PatchStatus.Added;
 				break;
-			case 'C': diffStatus = DiffStatus.Copied;
+			case 'C': diffStatus = PatchStatus.Copied;
 				break;
-			case 'D': diffStatus = DiffStatus.Deleted;
+			case 'D': diffStatus = PatchStatus.Deleted;
 				break;
-			case 'M': diffStatus = DiffStatus.Modified;
+			case 'M': diffStatus = PatchStatus.Modified;
 				break;
-			case 'R': diffStatus = DiffStatus.Renamed;
+			case 'R': diffStatus = PatchStatus.Renamed;
 				break;
-			case 'U': diffStatus = DiffStatus.Unmerged;
+			case 'U': diffStatus = PatchStatus.Unmerged;
 				break;
-			case 'T': diffStatus = DiffStatus.TypeChanged;
+			case 'T': diffStatus = PatchStatus.TypeChanged;
 				break;
-			case 'X': diffStatus = DiffStatus.Unknown;
+			case 'X': diffStatus = PatchStatus.Unknown;
 				break;
-			case 'B': diffStatus = DiffStatus.Broken;
+			case 'B': diffStatus = PatchStatus.Broken;
 				break;
 			default:
 				console.error(`Unknown diff status
 					${parts[0].charAt(0)}
 				, probably bad input/parsing error.`);
-				diffStatus = DiffStatus.Unknown;
+				diffStatus = PatchStatus.Unknown;
 		}
 
-		if (diffStatus == DiffStatus.Copied || diffStatus == DiffStatus.Renamed) {
+		if (diffStatus == PatchStatus.Copied || diffStatus == PatchStatus.Renamed) {
 			newFile = parts[2];
 			oldFile = parts[1];
-		} else if (diffStatus == DiffStatus.Added) {
+		} else if (diffStatus == PatchStatus.Added) {
 			newFile = parts[1];
 			oldFile = '';
-		} else if (diffStatus == DiffStatus.Deleted) {
+		} else if (diffStatus == PatchStatus.Deleted) {
 			newFile = '';
 			oldFile = parts[1];
 		} else {
@@ -202,8 +202,8 @@ function parseDiffNameStatus(raw: string, from: string, to: string): IDiff {
 
 		diff.patches.push({
 			status: diffStatus,
-			newFile: newFile,
-			oldFile: oldFile
+			modifiedFile: newFile,
+			originalFile: oldFile
 		});
 	}
 

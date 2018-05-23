@@ -21,8 +21,8 @@ const styles = {
 
 export interface IPatchTreeProps {
 	diff: IDiff;
-	selectedOldFile: string;
-	selectedNewFile: string;
+	selectedOriginalFile: string;
+	selectedModifiedFile: string;
 	selectPatch: (patch: IPatch) => void;
 }
 
@@ -40,12 +40,12 @@ export class PatchTree extends Component<IPatchTreeProps, IPatchTreeState> {
 			return (
 				<MenuItem
 					dense
-					key={patch.newFile || patch.oldFile}
+					key={patch.modifiedFile || patch.originalFile}
 					style={styles.menuItem}
-					selected={patch.newFile === this.props.selectedNewFile && patch.oldFile === this.props.selectedOldFile}
+					selected={patch.modifiedFile === this.props.selectedModifiedFile && patch.originalFile === this.props.selectedOriginalFile}
 					onClick={() => { this.onMenuItemClick(patch); }}
 				>
-					<ListItemText primary={`${patch.status} - ${patch.newFile || patch.oldFile}`} secondary={patch.oldFile}/>
+					<ListItemText primary={`${patch.status} - ${patch.modifiedFile || patch.originalFile}`} secondary={patch.originalFile}/>
 				</MenuItem>
 			);
 		});
@@ -59,11 +59,12 @@ export class PatchTree extends Component<IPatchTreeProps, IPatchTreeState> {
 
 const mapStateToProps = (state: IState) => {
 	let { comparison } = state;
-	//const allFiles = comparison.filesByHash[comparison.toHash].allFiles;
 	const diff = comparison.diffsByHash[comparison.fromHash][comparison.toHash];
+	const selectedOriginalFile = comparison.selectedPatch ? comparison.selectedPatch.originalFile : undefined;
+	const selectedModifiedFile = comparison.selectedPatch ? comparison.selectedPatch.modifiedFile : undefined;
 	return {
-		selectedOldFile: comparison.selectedOldFile,
-		selectedNewFile: comparison.selectedNewFile,
+		selectedOriginalFile: selectedOriginalFile,
+		selectedModifiedFile: selectedModifiedFile,
 		diff: diff
 	};
 };
