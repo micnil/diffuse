@@ -6,13 +6,15 @@ type Props = Partial<{
 	scrollTopRelative: number;
 }>;
 
-export const withScrollSync = <OriginalProps extends any>(
+export const withScrollSync = <OriginalProps extends {}>(
 	WrappedComponent: React.ComponentType<OriginalProps>
 ) => {
-	class ScrollSynced extends Component<Props> {
+	type ResultProps = OriginalProps & Props;
+	class ScrollSynced extends Component<ResultProps> {
 		readonly wrappedComponent: React.RefObject<HTMLElement>;
-
-		constructor(props: Props) {
+		static displayName = `ScrollSynced(${Component.name})`;
+		
+		constructor(props: ResultProps) {
 			super(props);
 			this.wrappedComponent = React.createRef();
 		}
@@ -28,12 +30,13 @@ export const withScrollSync = <OriginalProps extends any>(
 		}
 
 		render() {
-			let { scrollTopRelative, forwardedRef, ...rest } = this.props;
+			// "as any" due to https://github.com/Microsoft/TypeScript/pull/13288
+			let { scrollTopRelative, forwardedRef, ...rest } = this.props as any;
 			return <WrappedComponent ref={this.wrappedComponent} {...rest} />;
 		}
 	}
 
-	return React.forwardRef((props, ref) => (
+	return React.forwardRef((props: OriginalProps, ref) => (
 		<ScrollContext.Consumer>
 			{state => (
 				<ScrollSynced

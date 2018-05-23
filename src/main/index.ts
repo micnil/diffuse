@@ -3,16 +3,18 @@
 import { app, BrowserWindow } from 'electron'
 import * as path from 'path'
 import { format as formatUrl } from 'url'
+import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
 // global reference to mainWindow (necessary to prevent window from being garbage collected)
 let mainWindow: Electron.BrowserWindow | null = null;
 
-function createMainWindow() {
+async function createMainWindow() {
   const window = new BrowserWindow()
 
   if (isDevelopment) {
+    await installExtension(REACT_DEVELOPER_TOOLS);
     window.webContents.openDevTools()
   }
 
@@ -49,14 +51,14 @@ app.on('window-all-closed', () => {
   }
 })
 
-app.on('activate', () => {
+app.on('activate', async () => {
   // on macOS it is common to re-create a window even after all windows have been closed
   if (mainWindow === null) {
-    mainWindow = createMainWindow()
+    mainWindow = await createMainWindow()
   }
 })
 
 // create main BrowserWindow when electron is ready
-app.on('ready', () => {
-  mainWindow = createMainWindow()
+app.on('ready', async () => {
+  mainWindow = await createMainWindow()
 })

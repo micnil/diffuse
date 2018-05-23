@@ -79,7 +79,7 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 		return (
 			<FakeScrollbar scrollHeight={2100}>
 				<Splitter>
-					<PaneWithScrollSync>
+					<PaneWithScrollSync style={{background: atomOneDark.hljs.background}}>
 						<SyntaxHighlighter
 							style={atomOneDark}
 							customStyle={styles.codeContainer}
@@ -89,7 +89,7 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 							{originalContent}
 						</SyntaxHighlighter>
 					</PaneWithScrollSync>
-					<PaneWithScrollSync>
+					<PaneWithScrollSync style={{background: atomOneDark.hljs.background}}>
 						<SyntaxHighlighter
 							style={atomOneDark}
 							customStyle={styles.codeContainer}
@@ -108,7 +108,7 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 		return (
 			<FakeScrollbar scrollHeight={2100}>
 				<Splitter>
-					<PaneWithScrollSync>
+					<PaneWithScrollSync style={{background: atomOneDark.hljs.background}}>
 						<SyntaxHighlighter
 							style={atomOneDark}
 							showLineNumbers={true}
@@ -117,7 +117,7 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 							{originalContent}
 						</SyntaxHighlighter>
 					</PaneWithScrollSync>
-					<PaneWithScrollSync>
+					<PaneWithScrollSync style={{background: atomOneDark.hljs.background}}>
 						<SyntaxHighlighter
 							style={atomOneDark}
 							showLineNumbers={true}
