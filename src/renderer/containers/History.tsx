@@ -7,6 +7,8 @@ import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListSubheader from '@material-ui/core/ListSubheader';
 import Checkbox from '@material-ui/core/Checkbox';
 import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
+import RefreshIcon from '@material-ui/icons/Refresh';
 import { IState } from '../reducers';
 import { Dispatch, ICommit } from '../types';
 import { loadCommits, createReview, refreshCommits, createComparison } from '../actions';
@@ -112,6 +114,9 @@ export class History extends Component<IHistoryProps, IHistoryState> {
 					<Button size='small' color='default' variant='raised' style={styles.button}>
 						Create Review
 					</Button>
+					<IconButton color="primary" aria-label="Refresh" onClick={() => { this.props.refreshCommits(); }}>
+						<RefreshIcon />
+					</IconButton>
 				</ListSubheader>
 				{ commitHistoryList }
 			</List>
