@@ -10,11 +10,17 @@ const isDevelopment = process.env.NODE_ENV !== 'production'
 // global reference to mainWindow (necessary to prevent window from being garbage collected)
 let mainWindow: Electron.BrowserWindow | null = null;
 
-async function createMainWindow() {
+if (isDevelopment) {
+  app.commandLine.appendSwitch('remote-debugging-port', '9222')
+}
+
+function createMainWindow() {
   const window = new BrowserWindow()
 
   if (isDevelopment) {
-    await installExtension(REACT_DEVELOPER_TOOLS);
+    installExtension(REACT_DEVELOPER_TOOLS)
+      .then((name) => console.log(`Added Extension:  ${name}`))
+      .catch((err) => console.log('An error occurred: ', err));
     window.webContents.openDevTools()
   }
 
@@ -51,14 +57,14 @@ app.on('window-all-closed', () => {
   }
 })
 
-app.on('activate', async () => {
+app.on('activate',  () => {
   // on macOS it is common to re-create a window even after all windows have been closed
   if (mainWindow === null) {
-    mainWindow = await createMainWindow()
+    mainWindow = createMainWindow()
   }
 })
 
 // create main BrowserWindow when electron is ready
-app.on('ready', async () => {
-  mainWindow = await createMainWindow()
+app.on('ready',  () => {
+  mainWindow = createMainWindow()
 })
