@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { IState } from '../reducers';
-import { IFile, Dispatch, IPatch, PatchStatus } from '../common/types';
+import { IFile, Dispatch, IPatch, PatchStatus, IGenericLineChange } from '../common/types';
+import { getOriginalLineChanges, getModifiedLineChanges } from '../common/core';
 import { DiffComputer } from '../diff/diffComputer';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { atomOneDark } from 'react-syntax-highlighter/styles/hljs';
@@ -53,7 +54,9 @@ export interface IComparisonProps {
 }
 
 export interface IComparisonState {
-	lineChanges: ILineChange[];
+	lineChanges?: ILineChange[];
+	originalLineChanges?: IGenericLineChange[];
+	modifiedLineChanges?: IGenericLineChange[];
 	originalFileBlame: string[];
 	modifiedFileBlame: string[];
 	originalFileContent: string;
@@ -62,7 +65,6 @@ export interface IComparisonState {
 }
 
 const initialState: IComparisonState = {
-	lineChanges: [],
 	originalFileBlame: [],
 	modifiedFileBlame: [],
 	originalFileContent: 'No content',
@@ -83,7 +85,7 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 						<SyntaxHighlighter
 							style={atomOneDark}
 							customStyle={styles.codeContainer}
-							renderer={originalDiffRenderer([...this.state.lineChanges], this.state.originalFileBlame)}
+							renderer={originalDiffRenderer([...this.state.originalLineChanges], this.state.originalFileBlame)}
 							showLineNumbers={true}
 						>
 							{this.state.originalFileContent}
@@ -93,7 +95,7 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 						<SyntaxHighlighter
 							style={atomOneDark}
 							customStyle={styles.codeContainer}
-							renderer={modifiedDiffRenderer([...this.state.lineChanges], this.state.modifiedFileBlame)}
+							renderer={modifiedDiffRenderer([...this.state.modifiedLineChanges], this.state.modifiedFileBlame)}
 							showLineNumbers={true}
 						>
 							{this.state.modifiedFileContent}
@@ -137,7 +139,6 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 		// No files selected, render empty codeblocks
 		if (!patch) {
 			return {
-				lineChanges: [],
 				originalFileBlame: [],
 				modifiedFileBlame: [],
 				originalFileContent: 'No content',
@@ -149,7 +150,6 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 		// modified is deleted, render original.
 		if (patch.status === PatchStatus.Deleted) {
 			return {
-				lineChanges: [],
 				originalFileBlame: originalFile.blame,
 				modifiedFileBlame: [],
 				originalFileContent: originalFile.content,
@@ -161,7 +161,6 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 		// modified is added, render modified.
 		if (patch.status === PatchStatus.Added) {
 			return {
-				lineChanges: [],
 				originalFileBlame: [],
 				modifiedFileBlame: modifiedFile.blame,
 				originalFileContent: 'No content',
@@ -182,8 +181,12 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 		});
 
 		let lineChanges = diffComputer.computeDiff();
+		let originalLineChanges = getOriginalLineChanges(lineChanges);
+		let modifiedLineChanges = getModifiedLineChanges(lineChanges);
 		return {
 			lineChanges,
+			originalLineChanges,
+			modifiedLineChanges,
 			originalFileBlame: originalFile.blame,
 			modifiedFileBlame: modifiedFile.blame,
 			originalFileContent: originalFile.content,

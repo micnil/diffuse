@@ -17,10 +17,10 @@ export const getScrollHeight = (numOriginalLines: number, lineChanges: ILineChan
 		return numAddedLines > 0 ? height + numAddedLines : height;
 	}, 0);
 	numScrollLines += numOriginalLines;
-	console.log(numScrollLines * LINE_HEIGHT);
 	return numScrollLines * LINE_HEIGHT;
 };
 
-export const getScrollSyncRanges = (lineChanges: IGenericLineChange): number[] => {
-    return []
+export const getScrollSyncRanges = (numLines: number, lineChanges: IGenericLineChange): number[] => {
+	
+	return []
 }

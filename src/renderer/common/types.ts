@@ -77,33 +77,17 @@ export interface IComparison {
 	};
 }
 
-export interface IGenericCharChange {
-	readonly startColumn: number;
-	readonly endColumn: number;
-}
-
 export interface IGenericLineChange {
 	readonly startLine: number;
 	readonly endLine: number;
+	readonly charChanges?: IGenericCharChange[];
 }
 
-// export interface IComparison2 {
-// 	allHashes: string[];
-// 	diffsByHash: {
-// 		[fromHash: string]: {
-// 			[toHash: string]: IDiff
-// 		}
-// 	};
-// 	filesByHash: {
-// 		[hash: string]: {
-// 			byFile: {
-// 				[file: string]: IFile
-// 			}
-// 			allFiles: string[]
-// 		}
-// 	};
-// 	allPatches: string[];
-// 	patchesById
-// }
+export interface IGenericCharChange {
+	readonly startLine: number;
+	readonly endLine: number;
+	readonly startColumn: number;
+	readonly endColumn: number;
+}
 
 export type Dispatch = ReduxDispatch<IState>;

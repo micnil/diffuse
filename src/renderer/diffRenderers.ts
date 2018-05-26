@@ -1,33 +1,57 @@
+import { CSSProperties } from 'react';
 import { createElement, DocumentNode, IElementNode, ITextNode } from 'react-syntax-highlighter';
-import { ILineChange } from './diff/diffChange';
-import { IGenericCharChange } from './common/types';
+import { IGenericCharChange, IGenericLineChange } from './common/types';
 
 const styles = {
 	modificationBorder: {
 		display: 'block',
 		borderBottom: '2px solid rgba(0, 0, 255, 0.2)'
-	} as React.CSSProperties,
+	} as CSSProperties,
 
 	lineChangedOriginal: {
 		display: 'block',
 		backgroundColor: 'rgba(255, 0, 0, 0.1)'
-	} as React.CSSProperties,
+	} as CSSProperties,
 
 	charChangedOriginal: {
 		backgroundColor: 'rgba(255, 0, 0, 0.1)'
-	} as React.CSSProperties,
+	} as CSSProperties,
 
 	lineChangedModified: {
 		display: 'block',
 		backgroundColor: 'rgba(0, 255, 0, 0.1)'
-	} as React.CSSProperties,
+	} as CSSProperties,
 
 	charChangedModified: {
 		backgroundColor: 'rgba(0, 255, 0, 0.1)'
-	} as React.CSSProperties,
+	} as CSSProperties,
 };
 
-export function originalDiffRenderer(lineChanges: ILineChange[], blame: string[]) {
+interface DiffStyle {
+	charChangedStyle: CSSProperties;
+	lineChangedStyle: CSSProperties;
+	changeBorder: CSSProperties;
+}
+
+export function originalDiffRenderer(lineChanges: IGenericLineChange[], blame: string[]) {
+	const diffStyle: DiffStyle = {
+		charChangedStyle: styles.charChangedOriginal,
+		lineChangedStyle: styles.lineChangedOriginal,
+		changeBorder: styles.modificationBorder
+	}
+	return handleLineChanges(lineChanges, blame, diffStyle);
+}
+
+export function modifiedDiffRenderer(lineChanges: IGenericLineChange[], blame: string[]) {
+	const diffStyle: DiffStyle = {
+		charChangedStyle: styles.charChangedModified,
+		lineChangedStyle: styles.lineChangedModified,
+		changeBorder: styles.modificationBorder
+	}
+	return handleLineChanges(lineChanges, blame, diffStyle);
+}
+
+function handleLineChanges(lineChanges: IGenericLineChange[], blame: string[], diffStyle: DiffStyle) {
 	return ({ rows, stylesheet, useInlineStyles }: any) => {
 
 		let lineChange = lineChanges.shift();
@@ -46,7 +70,7 @@ export function originalDiffRenderer(lineChanges: ILineChange[], blame: string[]
 			let currentline = i + 1;
 
 			// This is a added file, don't do anything
-			if (lineChange.originalStartLineNumber == 0) {
+			if (lineChange.startLine == 0) {
 				lineChange = lineChanges.shift();
 				return createElement({
 					node,
@@ -57,35 +81,32 @@ export function originalDiffRenderer(lineChanges: ILineChange[], blame: string[]
 			}
 
 			// This is a position where a line has been added.
-			if (currentline === lineChange.originalStartLineNumber &&
-				lineChange.originalEndLineNumber == 0) {
+			if (currentline === lineChange.startLine &&
+				lineChange.endLine == 0) {
 				lineChange = lineChanges.shift();
 				// Add a border to indicate where content has been added.
 				return createElement({
 					node,
 					stylesheet,
 					useInlineStyles,
-					style: styles.modificationBorder,
+					style: diffStyle.changeBorder,
 					key: `code-segement${i}`
 				});
 			}
 
 			// We are currently in range of the lineChange (modification)
-			if (currentline >= lineChange.originalStartLineNumber &&
-				currentline <= lineChange.originalEndLineNumber) {
+			if (currentline >= lineChange.startLine &&
+				currentline <= lineChange.endLine) {
 
 				if (lineChange.charChanges) {
 					// Get the charchanges for the current line only.
 					let currentCharChanges: IGenericCharChange[] = lineChange.charChanges.filter( charChange =>
-						charChange.originalStartLineNumber == currentline
-					).map( charChange => ({
-						startColumn: charChange.originalStartColumn,
-						endColumn: charChange.originalEndColumn,
-					}));
+						charChange.startLine == currentline
+					)
 
 					// Only handle charchanges if there are any for this line.
 					if (currentCharChanges.length > 0) {
-						node.children = handleCharChanges(node.children, currentCharChanges, styles.charChangedOriginal);
+						node.children = handleCharChanges(node.children, currentCharChanges, diffStyle.charChangedStyle);
 					}
 				}
 
@@ -93,104 +114,17 @@ export function originalDiffRenderer(lineChanges: ILineChange[], blame: string[]
 					node,
 					stylesheet,
 					useInlineStyles,
-					style: styles.lineChangedOriginal,
+					style: diffStyle.lineChangedStyle,
 					key: `code-segement${i}`
 				});
 			}
 
 			// If the current line change has already been handled,
 			// get a new one.
-			let endLineNumber = lineChange.originalEndLineNumber === 0 ? 
-				lineChange.originalStartLineNumber : 
-				lineChange.originalEndLineNumber;
+			let endLineNumber = lineChange.endLine === 0 ? 
+				lineChange.startLine : 
+				lineChange.endLine;
 			if (endLineNumber < i) {
-				lineChange = lineChanges.shift();
-			}
-
-			return createElement({
-				node,
-				stylesheet,
-				useInlineStyles,
-				key: `code-segement${i}`
-			});
-		}
-	); };
-}
-
-export function modifiedDiffRenderer(lineChanges: ILineChange[], blame: string[]) {
-	return ({ rows, stylesheet, useInlineStyles }: any) => {
-
-		let lineChange = lineChanges.shift();
-		return rows.map((node: IElementNode, i: number) => {
-
-			// No (more) line changes, just create an element.
-			if (!lineChange) {
-				return createElement({
-					node,
-					stylesheet,
-					useInlineStyles,
-					key: `code-segement${i}`
-				});
-			}
-
-			let currentline = i + 1;
-
-			// This is a added file, don't do anything
-			if (lineChange.modifiedStartLineNumber == 0) {
-				lineChange = lineChanges.shift();
-				return createElement({
-					node,
-					stylesheet,
-					useInlineStyles,
-					key: `code-segement${i}`
-				});
-			}
-
-			// This is a position where a line has been added.
-			if (currentline === lineChange.modifiedStartLineNumber &&
-				lineChange.modifiedEndLineNumber == 0) {
-				lineChange = lineChanges.shift();
-				// Add a border to indicate where content has been added.
-				return createElement({
-					node,
-					stylesheet,
-					useInlineStyles,
-					style: styles.modificationBorder,
-					key: `code-segement${i}`
-				});
-			}
-
-			// We are currently in range of the lineChange (modification)
-			if (currentline >= lineChange.modifiedStartLineNumber &&
-				currentline <= lineChange.modifiedEndLineNumber) {
-
-				if (lineChange.charChanges) {
-					// Get the charchanges for the current line only.
-					let currentCharChanges = lineChange.charChanges.filter( charChange =>
-						charChange.modifiedStartLineNumber == currentline
-					).map( charChange => ({
-						startColumn: charChange.modifiedStartColumn,
-						endColumn: charChange.modifiedEndColumn,
-					}));
-
-					// Only handle charchanges if there are any for this line.
-					if (currentCharChanges.length > 0) {
-						node.children = handleCharChanges(node.children, currentCharChanges, styles.charChangedModified);
-					}
-				}
-
-				return createElement({
-					node,
-					stylesheet,
-					useInlineStyles,
-					style: styles.lineChangedModified,
-					key: `code-segement${i}`
-				});
-			}
-
-			// If the current line change has already been handled,
-			// get a new one.
-			if (lineChange.modifiedEndLineNumber < i) {
 				lineChange = lineChanges.shift();
 			}
 
