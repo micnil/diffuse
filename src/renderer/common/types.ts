@@ -1,7 +1,7 @@
 import {
 	Dispatch as ReduxDispatch,
 } from 'redux';
-import { IState } from './reducers';
+import { IState } from '../reducers';
 
 export interface ICommit {
 	hash: string;
@@ -75,6 +75,16 @@ export interface IComparison {
 			allFiles: string[]
 		}
 	};
+}
+
+export interface IGenericCharChange {
+	readonly startColumn: number;
+	readonly endColumn: number;
+}
+
+export interface IGenericLineChange {
+	readonly startLine: number;
+	readonly endLine: number;
 }
 
 // export interface IComparison2 {

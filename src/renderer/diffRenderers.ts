@@ -1,5 +1,6 @@
 import { createElement, DocumentNode, IElementNode, ITextNode } from 'react-syntax-highlighter';
 import { ILineChange } from './diff/diffChange';
+import { IGenericCharChange } from './common/types';
 
 const styles = {
 	modificationBorder: {
@@ -25,11 +26,6 @@ const styles = {
 		backgroundColor: 'rgba(0, 255, 0, 0.1)'
 	} as React.CSSProperties,
 };
-
-interface IGeneralCharChange {
-	readonly startColumn: number;
-	readonly endColumn: number;
-}
 
 export function originalDiffRenderer(lineChanges: ILineChange[], blame: string[]) {
 	return ({ rows, stylesheet, useInlineStyles }: any) => {
@@ -80,7 +76,7 @@ export function originalDiffRenderer(lineChanges: ILineChange[], blame: string[]
 
 				if (lineChange.charChanges) {
 					// Get the charchanges for the current line only.
-					let currentCharChanges: IGeneralCharChange[] = lineChange.charChanges.filter( charChange =>
+					let currentCharChanges: IGenericCharChange[] = lineChange.charChanges.filter( charChange =>
 						charChange.originalStartLineNumber == currentline
 					).map( charChange => ({
 						startColumn: charChange.originalStartColumn,
@@ -104,7 +100,10 @@ export function originalDiffRenderer(lineChanges: ILineChange[], blame: string[]
 
 			// If the current line change has already been handled,
 			// get a new one.
-			if (lineChange.originalEndLineNumber < i) {
+			let endLineNumber = lineChange.originalEndLineNumber === 0 ? 
+				lineChange.originalStartLineNumber : 
+				lineChange.originalEndLineNumber;
+			if (endLineNumber < i) {
 				lineChange = lineChanges.shift();
 			}
 
@@ -205,7 +204,7 @@ export function modifiedDiffRenderer(lineChanges: ILineChange[], blame: string[]
 	); };
 }
 
-function handleCharChanges(nodes: DocumentNode[], charChanges: IGeneralCharChange[], charChangeStyle: React.CSSProperties): DocumentNode[] {
+function handleCharChanges(nodes: DocumentNode[], charChanges: IGenericCharChange[], charChangeStyle: React.CSSProperties): DocumentNode[] {
 	let highlightedNodes: DocumentNode[] = [...nodes];
 	for (let charChange of charChanges) {
 		highlightedNodes = handleCharChange(highlightedNodes, charChange, charChangeStyle);
@@ -213,7 +212,7 @@ function handleCharChanges(nodes: DocumentNode[], charChanges: IGeneralCharChang
 	return highlightedNodes;
 }
 
-function handleCharChange(nodes: DocumentNode[], charChange: IGeneralCharChange, charChangeStyle: React.CSSProperties): DocumentNode[] {
+function handleCharChange(nodes: DocumentNode[], charChange: IGenericCharChange, charChangeStyle: React.CSSProperties): DocumentNode[] {
 	let highlightedNodes: DocumentNode[] = [];
 	let startColumn = 1;
 

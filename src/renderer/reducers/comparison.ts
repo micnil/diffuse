@@ -1,4 +1,4 @@
-import { IError, IComparison, IPatch } from '../types';
+import { IError, IComparison, IPatch } from '../common/types';
 import {
 	AnyAction,
 	CREATE_DIFF_REQUEST,

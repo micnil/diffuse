@@ -1,8 +1,8 @@
 import { createAction, ActionsUnion } from './utils';
 import { Dispatch } from 'redux';
 import { IState } from '../reducers';
-import { IError, IComparison, IPatch } from '../types';
-import Api from '../api';
+import { IError, IComparison, IPatch } from '../common/types';
+import Api from '../common/api';
 
 export const CREATE_DIFF_REQUEST = 'CREATE_DIFF_REQUEST';
 export const CREATE_DIFF_SUCCESS = 'CREATE_DIFF_SUCCESS';

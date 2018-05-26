@@ -1,4 +1,4 @@
-import { IError } from '../types';
+import { IError } from '../common/types';
 import {
 	AnyAction,
 	NAVIGATION,

@@ -7,7 +7,7 @@ import {
 	REFRESH_COMMITS_SUCCESS,
 	REFRESH_COMMITS_FAILURE
 } from '../actions';
-import { ICommit, IError } from '../types';
+import { ICommit, IError } from '../common/types';
 import * as path from 'path';
 
 const initialState: IRepositoryState = {

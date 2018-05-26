@@ -4,7 +4,7 @@ import ListItemText from '@material-ui/core/ListItemText';
 import MenuItem from '@material-ui/core/MenuItem';
 import MenuList from '@material-ui/core/MenuList';
 import { IState } from '../reducers';
-import { Dispatch, IDiff, IPatch } from '../types';
+import { Dispatch, IDiff, IPatch } from '../common/types';
 import { selectPatch } from '../actions';
 
 const styles = {

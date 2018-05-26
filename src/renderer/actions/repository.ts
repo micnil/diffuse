@@ -1,8 +1,8 @@
 import { createAction, ActionsUnion } from './utils';
 import { Dispatch } from 'redux';
-import { ICommit, IError } from '../types';
+import { ICommit, IError } from '../common/types';
 import { IState } from '../reducers';
-import Api from '../api';
+import Api from '../common/api';
 
 export const LOAD_COMMITS_REQUEST = 'LOAD_COMMITS_REQUEST';
 export const LOAD_COMMITS_SUCCESS = 'LOAD_COMMITS_SUCCESS';

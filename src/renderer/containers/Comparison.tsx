@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { IState } from '../reducers';
-import { IFile, Dispatch, IPatch, PatchStatus } from '../types';
+import { IFile, Dispatch, IPatch, PatchStatus } from '../common/types';
 import { DiffComputer } from '../diff/diffComputer';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { atomOneDark } from 'react-syntax-highlighter/styles/hljs';
@@ -75,7 +75,7 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 
 	readonly state = initialState;
 
-	renderSideBySideDiff(originalContent: string, modifiedContent: string, lineChanges: ILineChange[]) {
+	renderSideBySideDiff() {
 		return (
 			<FakeScrollbar scrollHeight={2100}>
 				<Splitter>
@@ -83,20 +83,20 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 						<SyntaxHighlighter
 							style={atomOneDark}
 							customStyle={styles.codeContainer}
-							renderer={originalDiffRenderer([...lineChanges], [])}
+							renderer={originalDiffRenderer([...this.state.lineChanges], this.state.originalFileBlame)}
 							showLineNumbers={true}
 						>
-							{originalContent}
+							{this.state.originalFileContent}
 						</SyntaxHighlighter>
 					</PaneWithScrollSync>
 					<PaneWithScrollSync style={{background: atomOneDark.hljs.background}}>
 						<SyntaxHighlighter
 							style={atomOneDark}
 							customStyle={styles.codeContainer}
-							renderer={modifiedDiffRenderer([...lineChanges], [])}
+							renderer={modifiedDiffRenderer([...this.state.lineChanges], this.state.modifiedFileBlame)}
 							showLineNumbers={true}
 						>
-							{modifiedContent}
+							{this.state.modifiedFileContent}
 						</SyntaxHighlighter>
 					</PaneWithScrollSync>
 				</Splitter>
@@ -104,7 +104,7 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 		);
 	}
 
-	renderSideBySide(originalContent: string, modifiedContent: string) {
+	renderSideBySide() {
 		return (
 			<FakeScrollbar scrollHeight={2100}>
 				<Splitter>
@@ -114,7 +114,7 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 							showLineNumbers={true}
 							customStyle={styles.codeContainer}
 						>
-							{originalContent}
+							{this.state.originalFileContent}
 						</SyntaxHighlighter>
 					</PaneWithScrollSync>
 					<PaneWithScrollSync style={{background: atomOneDark.hljs.background}}>
@@ -123,7 +123,7 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 							showLineNumbers={true}
 							customStyle={styles.codeContainer}
 						>
-							{modifiedContent}
+							{this.state.modifiedFileContent}
 						</SyntaxHighlighter>
 					</PaneWithScrollSync>
 				</Splitter>
@@ -193,17 +193,15 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 	}
 
 	render() {
-		const { patchStatus, originalFileContent, modifiedFileContent} = this.state;
+		const { patchStatus } = this.state;
 
 		if (patchStatus === PatchStatus.Added ||
 			patchStatus === PatchStatus.Deleted ||
 			patchStatus === PatchStatus.Unknown) {
-			return this.renderSideBySide(originalFileContent, modifiedFileContent)
+			return this.renderSideBySide()
 		}
 
-		const { lineChanges } = this.state;
-
-		return this.renderSideBySideDiff(originalFileContent, modifiedFileContent, lineChanges);
+		return this.renderSideBySideDiff();
 	}
 }
 

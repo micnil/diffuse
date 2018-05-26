@@ -1,4 +1,4 @@
-import { IError, IReview } from '../types';
+import { IError, IReview } from '../common/types';
 import {
 	AnyAction,
 	CREATE_REVIEW_REQUEST,

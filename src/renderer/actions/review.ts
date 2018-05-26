@@ -1,8 +1,8 @@
 import { createAction, ActionsUnion } from './utils';
 import { Dispatch } from 'redux';
 import { IState } from '../reducers';
-import { IError, IReview } from '../types';
-import Api from '../api';
+import { IError, IReview } from '../common/types';
+import Api from '../common/api';
 import * as uuid from 'uuid/v4';
 
 export const CREATE_REVIEW_REQUEST = 'CREATE_REVIEW_REQUEST';

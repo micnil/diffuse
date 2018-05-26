@@ -30,11 +30,10 @@ const initialState = {
 	isScrolling: false,
 	scrollingGripPosition: 0,
 	scrollTopRelative: 0,
-	thumbRelativeHeight: 0,
 	thumbMouseOver: false,
 };
 
-export type State = Readonly<typeof initialState>;
+type State = Readonly<typeof initialState>;
 type Props = Partial<{
 	scrollHeight: number;
 }>;
@@ -52,12 +51,11 @@ export class FakeScrollbar extends Component<Props, State> {
 	}
 
 	componentDidMount() {
-		this.updateScrollThumbHeight();
-		window.addEventListener('resize', this.updateScrollThumbHeight);
+		window.addEventListener('resize', this.handleResize);
 	}
 
 	componentWillUnmount() {
-		window.removeEventListener('resize', this.updateScrollThumbHeight);
+		window.removeEventListener('resize', this.handleResize);
 	}
 
 	get thumbPosition() {
@@ -86,7 +84,11 @@ export class FakeScrollbar extends Component<Props, State> {
 		if (!this.scrollTrack.current) {
 			return 0;
 		}
-		return this.state.thumbRelativeHeight * this.trackHeight;
+		return this.thumbRelativeHeight * this.trackHeight;
+	}
+
+	get thumbRelativeHeight() {
+		return this.trackHeight / this.props.scrollHeight;
 	}
 
 	handleWheel = (e: any) => {
@@ -148,10 +150,8 @@ export class FakeScrollbar extends Component<Props, State> {
 		});
 	}
 
-	updateScrollThumbHeight = () => {
-		this.setState({
-			thumbRelativeHeight: this.trackHeight / this.props.scrollHeight,
-		});
+	handleResize = () => {
+		this.forceUpdate();
 	}
 
 	render() {

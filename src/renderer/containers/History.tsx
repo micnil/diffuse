@@ -10,7 +10,7 @@ import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import { IState } from '../reducers';
-import { Dispatch, ICommit } from '../types';
+import { Dispatch, ICommit } from '../common/types';
 import { loadCommits, createReview, refreshCommits, createComparison } from '../actions';
 
 const styles = {
