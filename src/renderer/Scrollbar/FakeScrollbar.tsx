@@ -40,7 +40,6 @@ type Props = Partial<{
 
 export const ScrollContext = React.createContext(initialState);
 export class FakeScrollbar extends Component<Props, State> {
-
 	readonly scrollTrack: React.RefObject<HTMLDivElement>;
 	readonly scrollThumb: React.RefObject<HTMLDivElement>;
 	readonly state: State = initialState;
@@ -105,15 +104,15 @@ export class FakeScrollbar extends Component<Props, State> {
 		this.setState({
 			scrollTopRelative,
 		});
-	}
+	};
 
 	handleMouseEnterThumb = (e: any) => {
 		this.setState({ thumbMouseOver: true });
-	}
+	};
 
 	handleMouseLeaveThumb = (e: any) => {
 		this.setState({ thumbMouseOver: false });
-	}
+	};
 
 	handleMouseDown = (e: any) => {
 		this.setState({
@@ -122,7 +121,7 @@ export class FakeScrollbar extends Component<Props, State> {
 		});
 		document.addEventListener('mouseup', this.handleMouseUp);
 		document.addEventListener('mousemove', this.handleMouseMove);
-	}
+	};
 
 	handleMouseUp = (e: any) => {
 		this.setState({
@@ -131,7 +130,7 @@ export class FakeScrollbar extends Component<Props, State> {
 		});
 		document.removeEventListener('mouseup', this.handleMouseUp);
 		document.removeEventListener('mousemove', this.handleMouseMove);
-	}
+	};
 
 	handleMouseMove = (e: any) => {
 		if (!this.state.isScrolling) {
@@ -148,11 +147,11 @@ export class FakeScrollbar extends Component<Props, State> {
 		this.setState({
 			scrollTopRelative,
 		});
-	}
+	};
 
 	handleResize = () => {
 		this.forceUpdate();
-	}
+	};
 
 	render() {
 		let { thumbMouseOver, isScrolling } = this.state;

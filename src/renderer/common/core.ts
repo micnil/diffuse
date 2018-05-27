@@ -25,8 +25,8 @@ export const getModifiedLineChanges = (lineChanges: ILineChange[]): IGenericLine
 				startLine: lineChange.modifiedStartLineNumber,
 				endLine: lineChange.modifiedEndLineNumber,
 				charChanges: lineChange.charChanges
-                    ? getModifiedCharChanges(lineChange.charChanges)
-                    : undefined,
+					? getModifiedCharChanges(lineChange.charChanges)
+					: undefined,
 			};
 
 			return [...genericChanges, genericChange];

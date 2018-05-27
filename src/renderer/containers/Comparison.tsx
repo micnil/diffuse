@@ -70,33 +70,50 @@ const initialState: IComparisonState = {
 	originalFileContent: 'No content',
 	modifiedFileContent: 'No content',
 	patchStatus: undefined,
-}
+};
 
 let PaneWithScrollSync = withScrollSync(Pane);
 export class Comparison extends Component<IComparisonProps, IComparisonState> {
-
 	readonly state = initialState;
 
 	renderSideBySideDiff() {
-		const {originalFileBlame, lineChanges, originalLineChanges, modifiedFileBlame, modifiedLineChanges} = this.state;
+		const {
+			originalFileBlame,
+			lineChanges,
+			originalLineChanges,
+			modifiedFileBlame,
+			modifiedLineChanges,
+		} = this.state;
 		return (
 			<FakeScrollbar scrollHeight={getScrollHeight(originalFileBlame.length, lineChanges)}>
 				<Splitter>
-					<PaneWithScrollSync ranges={getScrollSyncRanges(originalFileBlame.length, originalLineChanges)} style={{background: atomOneDark.hljs.background}}>
+					<PaneWithScrollSync
+						ranges={getScrollSyncRanges(originalFileBlame.length, originalLineChanges)}
+						style={{ background: atomOneDark.hljs.background }}
+					>
 						<SyntaxHighlighter
 							style={atomOneDark}
 							customStyle={styles.codeContainer}
-							renderer={originalDiffRenderer([...originalLineChanges], originalFileBlame)}
+							renderer={originalDiffRenderer(
+								[...originalLineChanges],
+								originalFileBlame,
+							)}
 							showLineNumbers={true}
 						>
 							{this.state.originalFileContent}
 						</SyntaxHighlighter>
 					</PaneWithScrollSync>
-					<PaneWithScrollSync ranges={getScrollSyncRanges(modifiedFileBlame.length, modifiedLineChanges)} style={{background: atomOneDark.hljs.background}}>
+					<PaneWithScrollSync
+						ranges={getScrollSyncRanges(modifiedFileBlame.length, modifiedLineChanges)}
+						style={{ background: atomOneDark.hljs.background }}
+					>
 						<SyntaxHighlighter
 							style={atomOneDark}
 							customStyle={styles.codeContainer}
-							renderer={modifiedDiffRenderer([...modifiedLineChanges], modifiedFileBlame)}
+							renderer={modifiedDiffRenderer(
+								[...modifiedLineChanges],
+								modifiedFileBlame,
+							)}
 							showLineNumbers={true}
 						>
 							{this.state.modifiedFileContent}
@@ -111,7 +128,7 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 		return (
 			<FakeScrollbar scrollHeight={2100}>
 				<Splitter>
-					<PaneWithScrollSync style={{background: atomOneDark.hljs.background}}>
+					<PaneWithScrollSync style={{ background: atomOneDark.hljs.background }}>
 						<SyntaxHighlighter
 							style={atomOneDark}
 							showLineNumbers={true}
@@ -120,7 +137,7 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 							{this.state.originalFileContent}
 						</SyntaxHighlighter>
 					</PaneWithScrollSync>
-					<PaneWithScrollSync style={{background: atomOneDark.hljs.background}}>
+					<PaneWithScrollSync style={{ background: atomOneDark.hljs.background }}>
 						<SyntaxHighlighter
 							style={atomOneDark}
 							showLineNumbers={true}
@@ -134,7 +151,10 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 		);
 	}
 
-	static getDerivedStateFromProps(nextProps: IComparisonProps, prevState: IComparisonState): IComparisonState | null {
+	static getDerivedStateFromProps(
+		nextProps: IComparisonProps,
+		prevState: IComparisonState,
+	): IComparisonState | null {
 		let { originalFile, modifiedFile, patch } = nextProps;
 
 		// No files selected, render empty codeblocks
@@ -199,10 +219,12 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 	render() {
 		const { patchStatus } = this.state;
 
-		if (patchStatus === PatchStatus.Added ||
+		if (
+			patchStatus === PatchStatus.Added ||
 			patchStatus === PatchStatus.Deleted ||
-			patchStatus === PatchStatus.Unknown) {
-			return this.renderSideBySide()
+			patchStatus === PatchStatus.Unknown
+		) {
+			return this.renderSideBySide();
 		}
 
 		return this.renderSideBySideDiff();
@@ -210,7 +232,9 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 }
 
 const mapStateToProps = (state: IState) => {
-	const { comparison: {filesByHash, selectedPatch, fromHash, toHash} } = state;
+	const {
+		comparison: { filesByHash, selectedPatch, fromHash, toHash },
+	} = state;
 	let originalFile: IFile;
 	let modifiedFile: IFile;
 	if (selectedPatch && filesByHash[fromHash] && filesByHash[toHash]) {
@@ -219,8 +243,8 @@ const mapStateToProps = (state: IState) => {
 	}
 	return {
 		patch: selectedPatch,
-		originalFile, 
-		modifiedFile
+		originalFile,
+		modifiedFile,
 	};
 };
 

@@ -15,8 +15,8 @@ export const withScrollSync = <OriginalProps extends {}>(
 		readonly wrappedComponent: React.RefObject<HTMLElement>;
 		static displayName = `ScrollSynced(${Component.name})`;
 		static defaultProps = {
-			ranges: [0, 1]
-		}
+			ranges: [0, 1],
+		};
 		constructor(props: ResultProps) {
 			super(props);
 			this.wrappedComponent = React.createRef();
@@ -29,7 +29,9 @@ export const withScrollSync = <OriginalProps extends {}>(
 			}
 
 			let { scrollHeight, clientHeight } = this.wrappedComponent.current;
-			this.wrappedComponent.current.scrollTop = (scrollHeight - clientHeight) * lerp(this.props.ranges, scrollTopRelative);
+			let scrollTopMax = scrollHeight - clientHeight;
+			this.wrappedComponent.current.scrollTop =
+				scrollTopMax * lerp(this.props.ranges, scrollTopRelative);
 		}
 
 		render() {
@@ -52,8 +54,7 @@ export const withScrollSync = <OriginalProps extends {}>(
 	));
 };
 
-
-function lerp(ranges: number [], value: number) {
+function lerp(ranges: number[], value: number) {
 	// If we have 4 stop points, it means we have 3 ranges of interpolation
 	//       range   range  range
 	//     |------|-------|-------|
@@ -63,10 +64,12 @@ function lerp(ranges: number [], value: number) {
 
 	// Edge case: If we have 3 ranges and value is 1, we want currentRange
 	// to be 2 because it is a zero-based index.
-	let currentRange = Math.min(Math.floor(value * numRanges), numRanges-1);
+	let currentRange = Math.min(Math.floor(value * numRanges), numRanges - 1);
 
-	let positionInRange = (value * numRanges) - currentRange;
+	let positionInRange = value * numRanges - currentRange;
 
 	// linear interpolation: v0 + t * (v1 - v0);
-	return ranges[currentRange] + positionInRange * (ranges[currentRange+1] - ranges[currentRange]);
+	return (
+		ranges[currentRange] + positionInRange * (ranges[currentRange + 1] - ranges[currentRange])
+	);
 }

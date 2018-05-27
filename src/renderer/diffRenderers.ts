@@ -5,25 +5,25 @@ import { IGenericCharChange, IGenericLineChange } from './common/types';
 const styles = {
 	modificationBorder: {
 		display: 'block',
-		borderBottom: '2px solid rgba(0, 0, 255, 0.2)'
+		borderBottom: '2px solid rgba(0, 0, 255, 0.2)',
 	} as CSSProperties,
 
 	lineChangedOriginal: {
 		display: 'block',
-		backgroundColor: 'rgba(255, 0, 0, 0.1)'
+		backgroundColor: 'rgba(255, 0, 0, 0.1)',
 	} as CSSProperties,
 
 	charChangedOriginal: {
-		backgroundColor: 'rgba(255, 0, 0, 0.1)'
+		backgroundColor: 'rgba(255, 0, 0, 0.1)',
 	} as CSSProperties,
 
 	lineChangedModified: {
 		display: 'block',
-		backgroundColor: 'rgba(0, 255, 0, 0.1)'
+		backgroundColor: 'rgba(0, 255, 0, 0.1)',
 	} as CSSProperties,
 
 	charChangedModified: {
-		backgroundColor: 'rgba(0, 255, 0, 0.1)'
+		backgroundColor: 'rgba(0, 255, 0, 0.1)',
 	} as CSSProperties,
 };
 
@@ -37,8 +37,8 @@ export function originalDiffRenderer(lineChanges: IGenericLineChange[], blame: s
 	const diffStyle: DiffStyle = {
 		charChangedStyle: styles.charChangedOriginal,
 		lineChangedStyle: styles.lineChangedOriginal,
-		changeBorder: styles.modificationBorder
-	}
+		changeBorder: styles.modificationBorder,
+	};
 	return handleLineChanges(lineChanges, blame, diffStyle);
 }
 
@@ -46,24 +46,26 @@ export function modifiedDiffRenderer(lineChanges: IGenericLineChange[], blame: s
 	const diffStyle: DiffStyle = {
 		charChangedStyle: styles.charChangedModified,
 		lineChangedStyle: styles.lineChangedModified,
-		changeBorder: styles.modificationBorder
-	}
+		changeBorder: styles.modificationBorder,
+	};
 	return handleLineChanges(lineChanges, blame, diffStyle);
 }
 
-function handleLineChanges(lineChanges: IGenericLineChange[], blame: string[], diffStyle: DiffStyle) {
+function handleLineChanges(
+	lineChanges: IGenericLineChange[],
+	blame: string[],
+	diffStyle: DiffStyle,
+) {
 	return ({ rows, stylesheet, useInlineStyles }: any) => {
-
 		let lineChange = lineChanges.shift();
 		return rows.map((node: IElementNode, i: number) => {
-
 			// No (more) line changes, just create an element.
 			if (!lineChange) {
 				return createElement({
 					node,
 					stylesheet,
 					useInlineStyles,
-					key: `code-segement${i}`
+					key: `code-segement${i}`,
 				});
 			}
 
@@ -76,13 +78,12 @@ function handleLineChanges(lineChanges: IGenericLineChange[], blame: string[], d
 					node,
 					stylesheet,
 					useInlineStyles,
-					key: `code-segement${i}`
+					key: `code-segement${i}`,
 				});
 			}
 
 			// This is a position where a line has been added.
-			if (currentline === lineChange.startLine &&
-				lineChange.endLine == 0) {
+			if (currentline === lineChange.startLine && lineChange.endLine == 0) {
 				lineChange = lineChanges.shift();
 				// Add a border to indicate where content has been added.
 				return createElement({
@@ -90,23 +91,25 @@ function handleLineChanges(lineChanges: IGenericLineChange[], blame: string[], d
 					stylesheet,
 					useInlineStyles,
 					style: diffStyle.changeBorder,
-					key: `code-segement${i}`
+					key: `code-segement${i}`,
 				});
 			}
 
 			// We are currently in range of the lineChange (modification)
-			if (currentline >= lineChange.startLine &&
-				currentline <= lineChange.endLine) {
-
+			if (currentline >= lineChange.startLine && currentline <= lineChange.endLine) {
 				if (lineChange.charChanges) {
 					// Get the charchanges for the current line only.
-					let currentCharChanges: IGenericCharChange[] = lineChange.charChanges.filter( charChange =>
-						charChange.startLine == currentline
-					)
+					let currentCharChanges: IGenericCharChange[] = lineChange.charChanges.filter(
+						charChange => charChange.startLine == currentline,
+					);
 
 					// Only handle charchanges if there are any for this line.
 					if (currentCharChanges.length > 0) {
-						node.children = handleCharChanges(node.children, currentCharChanges, diffStyle.charChangedStyle);
+						node.children = handleCharChanges(
+							node.children,
+							currentCharChanges,
+							diffStyle.charChangedStyle,
+						);
 					}
 				}
 
@@ -115,15 +118,14 @@ function handleLineChanges(lineChanges: IGenericLineChange[], blame: string[], d
 					stylesheet,
 					useInlineStyles,
 					style: diffStyle.lineChangedStyle,
-					key: `code-segement${i}`
+					key: `code-segement${i}`,
 				});
 			}
 
 			// If the current line change has already been handled,
 			// get a new one.
-			let endLineNumber = lineChange.endLine === 0 ? 
-				lineChange.startLine : 
-				lineChange.endLine;
+			let endLineNumber =
+				lineChange.endLine === 0 ? lineChange.startLine : lineChange.endLine;
 			if (endLineNumber < i) {
 				lineChange = lineChanges.shift();
 			}
@@ -132,13 +134,17 @@ function handleLineChanges(lineChanges: IGenericLineChange[], blame: string[], d
 				node,
 				stylesheet,
 				useInlineStyles,
-				key: `code-segement${i}`
+				key: `code-segement${i}`,
 			});
-		}
-	); };
+		});
+	};
 }
 
-function handleCharChanges(nodes: DocumentNode[], charChanges: IGenericCharChange[], charChangeStyle: React.CSSProperties): DocumentNode[] {
+function handleCharChanges(
+	nodes: DocumentNode[],
+	charChanges: IGenericCharChange[],
+	charChangeStyle: React.CSSProperties,
+): DocumentNode[] {
 	let highlightedNodes: DocumentNode[] = [...nodes];
 	for (let charChange of charChanges) {
 		highlightedNodes = handleCharChange(highlightedNodes, charChange, charChangeStyle);
@@ -146,13 +152,16 @@ function handleCharChanges(nodes: DocumentNode[], charChanges: IGenericCharChang
 	return highlightedNodes;
 }
 
-function handleCharChange(nodes: DocumentNode[], charChange: IGenericCharChange, charChangeStyle: React.CSSProperties): DocumentNode[] {
+function handleCharChange(
+	nodes: DocumentNode[],
+	charChange: IGenericCharChange,
+	charChangeStyle: React.CSSProperties,
+): DocumentNode[] {
 	let highlightedNodes: DocumentNode[] = [];
 	let startColumn = 1;
 
 	for (let node of nodes) {
-
-		let nodeText  = getText(node);
+		let nodeText = getText(node);
 		let endColumn = startColumn + nodeText.length;
 
 		// char change has already been handled. Should probably exit early in this
@@ -171,8 +180,7 @@ function handleCharChange(nodes: DocumentNode[], charChange: IGenericCharChange,
 		}
 
 		// If node is completely encapsulated in charChange, add styling
-		if (charChange.startColumn <= startColumn &&
-			charChange.endColumn >= endColumn) {
+		if (charChange.startColumn <= startColumn && charChange.endColumn >= endColumn) {
 			highlightedNodes.push(highlightNode(node, charChangeStyle));
 			startColumn = endColumn;
 			continue;
@@ -180,17 +188,20 @@ function handleCharChange(nodes: DocumentNode[], charChange: IGenericCharChange,
 
 		// If charChange is completely encapsulated in node
 		// split the node in three parts
-		if (startColumn <= charChange.startColumn &&
-			endColumn >= charChange.endColumn) {
+		if (startColumn <= charChange.startColumn && endColumn >= charChange.endColumn) {
 			let splitStartIndex = charChange.startColumn - startColumn;
-			let splitEndIndex =  charChange.endColumn - startColumn;
+			let splitEndIndex = charChange.endColumn - startColumn;
 
 			let firstNormalText = nodeText.slice(0, splitStartIndex);
 			let highlightedText = nodeText.slice(splitStartIndex, splitEndIndex);
 			let secondNormalText = nodeText.slice(splitEndIndex);
 
 			let firstNormalNode = replaceChildren(node, createTextNode(firstNormalText));
-			let highlightedNode = replaceChildren(node, createTextNode(highlightedText), charChangeStyle);
+			let highlightedNode = replaceChildren(
+				node,
+				createTextNode(highlightedText),
+				charChangeStyle,
+			);
 			let secondNormalNode = replaceChildren(node, createTextNode(secondNormalText));
 
 			highlightedNodes.push(firstNormalNode, highlightedNode, secondNormalNode);
@@ -205,7 +216,11 @@ function handleCharChange(nodes: DocumentNode[], charChange: IGenericCharChange,
 			let normalText = nodeText.slice(splitIndex);
 
 			let normalNode = replaceChildren(node, createTextNode(normalText));
-			let highlightedNode = replaceChildren(node, createTextNode(highlightedText), charChangeStyle);
+			let highlightedNode = replaceChildren(
+				node,
+				createTextNode(highlightedText),
+				charChangeStyle,
+			);
 
 			highlightedNodes.push(highlightedNode, normalNode);
 			startColumn = endColumn;
@@ -219,7 +234,11 @@ function handleCharChange(nodes: DocumentNode[], charChange: IGenericCharChange,
 			let normalText = nodeText.slice(0, splitIndex);
 
 			let normalNode = replaceChildren(node, createTextNode(normalText));
-			let highlightedNode = replaceChildren(node, createTextNode(highlightedText), charChangeStyle);
+			let highlightedNode = replaceChildren(
+				node,
+				createTextNode(highlightedText),
+				charChangeStyle,
+			);
 
 			highlightedNodes.push(normalNode, highlightedNode);
 			startColumn = endColumn;
@@ -230,7 +249,11 @@ function handleCharChange(nodes: DocumentNode[], charChange: IGenericCharChange,
 	return highlightedNodes;
 }
 
-function replaceChildren(node: DocumentNode, child: DocumentNode, style?: React.CSSProperties): DocumentNode {
+function replaceChildren(
+	node: DocumentNode,
+	child: DocumentNode,
+	style?: React.CSSProperties,
+): DocumentNode {
 	let newNode: DocumentNode;
 
 	// If the inout node is an element type, copy it and replace the children.
@@ -261,35 +284,35 @@ function replaceChildren(node: DocumentNode, child: DocumentNode, style?: React.
 
 function copyNodeWithoutChildren(node: IElementNode): IElementNode {
 	return {
-		'type': node.type,
-		'tagName': node.tagName,
-		'properties': {
-			'className': [...node.properties.className],
+		type: node.type,
+		tagName: node.tagName,
+		properties: {
+			className: [...node.properties.className],
 		},
-		'children': []
+		children: [],
 	};
 }
 
 function createTextNode(text: string): ITextNode {
 	return {
-		'type': 'text',
-		'value': text
+		type: 'text',
+		value: text,
 	};
 }
 
 function createElementNode(tagName: string): IElementNode {
 	return {
-		'type': 'element',
-		'tagName': tagName,
-		'properties': {
-			'className': []
+		type: 'element',
+		tagName: tagName,
+		properties: {
+			className: [],
 		},
-		'children': []
+		children: [],
 	};
 }
 
 function getText(node: DocumentNode): string {
-	if ( node.type === 'element') {
+	if (node.type === 'element') {
 		return node.children.reduce((text: string, node: DocumentNode) => {
 			return node.type == 'text' ? text + node.value : text;
 		}, '');
@@ -311,5 +334,3 @@ function highlightNode(node: DocumentNode, style: React.CSSProperties): Document
 	}
 	return highlightedNode;
 }
-
-

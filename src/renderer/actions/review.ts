@@ -13,7 +13,11 @@ export const createReviewRequest = () => createAction(CREATE_REVIEW_REQUEST);
 export const createReviewSuccess = (review: IReview) => createAction(CREATE_REVIEW_SUCCESS, review);
 export const createReviewFailure = (error: IError) => createAction(CREATE_REVIEW_FAILURE, error);
 export const createReview = (hashes: string[]) => {
-	return async (dispatch: Dispatch<ReviewActions>, getState: () => IState, api: Api): Promise<IReview | undefined> => {
+	return async (
+		dispatch: Dispatch<ReviewActions>,
+		getState: () => IState,
+		api: Api,
+	): Promise<IReview | undefined> => {
 		dispatch(createReviewRequest());
 
 		try {
@@ -28,7 +32,7 @@ export const createReview = (hashes: string[]) => {
 			return review;
 		} catch (err) {
 			const error: IError = {
-				message: err.message
+				message: err.message,
 			};
 			dispatch(createReviewFailure(error));
 			console.error(err);
@@ -40,7 +44,7 @@ export const createReview = (hashes: string[]) => {
 const actions = {
 	createReviewRequest,
 	createReviewSuccess,
-	createReviewFailure
+	createReviewFailure,
 };
 
 export type ReviewActions = ActionsUnion<typeof actions>;

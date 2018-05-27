@@ -11,7 +11,7 @@ import { App } from './App';
 const loggerMiddleware = createLogger();
 let store = createStore(
 	rootReducer,
-	applyMiddleware(thunk.withExtraArgument(api), loggerMiddleware)
+	applyMiddleware(thunk.withExtraArgument(api), loggerMiddleware),
 );
 
 render(

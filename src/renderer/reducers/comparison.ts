@@ -30,7 +30,7 @@ export default function comparison(state: IComparisonState = initialState, actio
 	switch (action.type) {
 		case CREATE_DIFF_REQUEST:
 			return Object.assign({}, state, {
-				isLoading: true
+				isLoading: true,
 			});
 		case CREATE_DIFF_SUCCESS:
 			let fromHash = action.payload.allHashes[0];
@@ -47,7 +47,7 @@ export default function comparison(state: IComparisonState = initialState, actio
 		case CREATE_DIFF_FAILURE:
 			return Object.assign({}, state, {
 				isLoading: false,
-				error: action.payload
+				error: action.payload,
 			});
 		case SELECT_PATCH:
 			return Object.assign({}, state, {

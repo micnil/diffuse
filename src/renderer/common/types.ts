@@ -1,6 +1,4 @@
-import {
-	Dispatch as ReduxDispatch,
-} from 'redux';
+import { Dispatch as ReduxDispatch } from 'redux';
 import { IState } from '../reducers';
 
 export interface ICommit {
@@ -31,7 +29,7 @@ export enum PatchStatus {
 	Unmerged = 'Unmerged',
 	TypeChanged = 'TypeChanged',
 	Unknown = 'Unknown',
-	Broken = 'Broken'
+	Broken = 'Broken',
 }
 
 export interface IDiffHunk {
@@ -64,16 +62,16 @@ export interface IComparison {
 	allHashes: string[];
 	diffsByHash: {
 		[fromHash: string]: {
-			[toHash: string]: IDiff
-		}
+			[toHash: string]: IDiff;
+		};
 	};
 	filesByHash: {
 		[hash: string]: {
 			byFile: {
-				[file: string]: IFile
-			}
-			allFiles: string[]
-		}
+				[file: string]: IFile;
+			};
+			allFiles: string[];
+		};
 	};
 }
 

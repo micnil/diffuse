@@ -11,7 +11,7 @@ export const getScrollHeight = (numOriginalLines: number, lineChanges: ILineChan
 		// prettier-ignore
 		const numChangedLinesOriginal =	lineChange.originalEndLineNumber !== 0 ? 
 		lineChange.originalEndLineNumber - lineChange.originalStartLineNumber + 1 : 0;
-		
+
 		const numAddedLines = numChangedLinesModified - numChangedLinesOriginal;
 
 		return numAddedLines > 0 ? height + numAddedLines : height;
@@ -20,11 +20,16 @@ export const getScrollHeight = (numOriginalLines: number, lineChanges: ILineChan
 	return numScrollLines * LINE_HEIGHT;
 };
 
-export const getScrollSyncRanges = (numLines: number, lineChanges: IGenericLineChange[]): number[] => {
+export const getScrollSyncRanges = (
+	numLines: number,
+	lineChanges: IGenericLineChange[],
+): number[] => {
 	const documentHeight = numLines * LINE_HEIGHT;
+
+	// prettier-ignore
 	return lineChanges.reduce((ranges: number[], lineChange: IGenericLineChange) => {
 		const stopPoint1 = ((lineChange.startLine - 1) * LINE_HEIGHT) / documentHeight;
 		const stopPoint2 = lineChange.endLine === 0 ? stopPoint1 : (lineChange.endLine * LINE_HEIGHT) / documentHeight;
 		return [...ranges, stopPoint1, stopPoint2];
 	}, []);
-}
+};

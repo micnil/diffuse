@@ -12,7 +12,7 @@ import { createNavigation } from '../actions';
 const styles = {
 	listItemIcon: {
 		display: 'inline-flex',
-	} as CSSProperties
+	} as CSSProperties,
 };
 
 interface IActivityBarProps {
@@ -22,7 +22,6 @@ interface IActivityBarProps {
 }
 
 export class ActivityBar extends Component<IActivityBarProps> {
-
 	render() {
 		return (
 			<MenuList>
@@ -30,7 +29,10 @@ export class ActivityBar extends Component<IActivityBarProps> {
 					dense
 					disableGutters
 					selected={this.props.currentRoute === 'History'}
-					onClick={() => { this.props.navigate('History'); }}>
+					onClick={() => {
+						this.props.navigate('History');
+					}}
+				>
 					<ListItemIcon style={styles.listItemIcon}>
 						<ListIcon />
 					</ListItemIcon>
@@ -40,7 +42,9 @@ export class ActivityBar extends Component<IActivityBarProps> {
 					disableGutters
 					disabled={this.props.comparisonDisabled}
 					selected={this.props.currentRoute === 'Comparison'}
-					onClick={() => { this.props.navigate('Comparison'); }}
+					onClick={() => {
+						this.props.navigate('Comparison');
+					}}
 				>
 					<ListItemIcon style={styles.listItemIcon}>
 						<CompareIcon />
@@ -54,7 +58,7 @@ export class ActivityBar extends Component<IActivityBarProps> {
 const mapStateToProps = (state: IState) => {
 	return {
 		currentRoute: state.navigation.currentRoute,
-		comparisonDisabled: state.comparison.allHashes.length === 0
+		comparisonDisabled: state.comparison.allHashes.length === 0,
 	};
 };
 
@@ -62,7 +66,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
 	return {
 		navigate: (route: string) => {
 			dispatch(createNavigation(route));
-		}
+		},
 	};
 };
 

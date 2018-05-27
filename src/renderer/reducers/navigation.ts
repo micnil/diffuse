@@ -1,9 +1,5 @@
 import { IError } from '../common/types';
-import {
-	AnyAction,
-	NAVIGATION,
-	CREATE_DIFF_SUCCESS,
-} from '../actions';
+import { AnyAction, NAVIGATION, CREATE_DIFF_SUCCESS } from '../actions';
 
 export interface INavigationState {
 	currentRoute: string;

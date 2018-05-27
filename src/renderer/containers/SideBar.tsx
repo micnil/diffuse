@@ -10,9 +10,7 @@ interface ISideBarProps {
 }
 
 export class SideBar extends Component<ISideBarProps> {
-
 	render() {
-
 		let RenderableView;
 		switch (this.props.currentRoute) {
 			case 'History':
@@ -25,15 +23,13 @@ export class SideBar extends Component<ISideBarProps> {
 				RenderableView = History;
 		}
 
-		return (
-			<RenderableView />
-		);
+		return <RenderableView />;
 	}
 }
 
 const mapStateToProps = (state: IState) => {
 	return {
-		currentRoute: state.navigation.currentRoute
+		currentRoute: state.navigation.currentRoute,
 	};
 };
 

@@ -9,7 +9,7 @@ export class App extends Component {
 	render() {
 		return (
 			<div className={'app'}>
-                <div className={'activity-bar-container'}>
+				<div className={'activity-bar-container'}>
 					<ActivityBar />
 				</div>
 				<div className={'split-pane-container'}>

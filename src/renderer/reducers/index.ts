@@ -12,7 +12,7 @@ export interface IState {
 const reducers = combineReducers({
 	repository,
 	comparison,
-	navigation
+	navigation,
 });
 
 export default reducers;

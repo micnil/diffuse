@@ -5,7 +5,7 @@ let styles = {
 		display: 'flex',
 		flexDirection: 'row',
 		flex: 1,
-		width: '100vh'
+		width: '100vh',
 	} as CSSProperties,
 	bridge: {
 		width: '40px',
@@ -30,7 +30,7 @@ export default class Splitter extends Component<ISplitterProps, State> {
 	readonly container: React.RefObject<HTMLDivElement>;
 	constructor(props: ISplitterProps) {
 		super(props);
-		this.container  = React.createRef();
+		this.container = React.createRef();
 	}
 
 	componentDidMount() {
@@ -43,7 +43,7 @@ export default class Splitter extends Component<ISplitterProps, State> {
 		this.setState({ dragging: false });
 		document.removeEventListener('mouseup', this.handleMouseUp);
 		document.removeEventListener('mousemove', this.handleMouseMove);
-	}
+	};
 
 	handleMouseMove = (e: any) => {
 		if (!this.state.dragging) {
@@ -55,13 +55,13 @@ export default class Splitter extends Component<ISplitterProps, State> {
 			leftPaneFlex: splitterPosition,
 			rightPaneFlex: 1 - splitterPosition,
 		});
-	}
+	};
 
 	handleMouseDown = (e: any) => {
 		this.setState({ dragging: true });
 		document.addEventListener('mouseup', this.handleMouseUp);
 		document.addEventListener('mousemove', this.handleMouseMove);
-	}
+	};
 
 	getRelativeContainerX(x: number) {
 		//let rect = this.container.current.getBoundingClientRect();
@@ -85,10 +85,7 @@ export default class Splitter extends Component<ISplitterProps, State> {
 		return (
 			<div style={styles.container} ref={this.container}>
 				{leftPane}
-				<div
-					style={{ ...styles.bridge }}
-					onMouseDown={this.handleMouseDown}
-				/>
+				<div style={{ ...styles.bridge }} onMouseDown={this.handleMouseDown} />
 				{rightPane}
 			</div>
 		);

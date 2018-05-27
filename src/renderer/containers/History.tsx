@@ -17,20 +17,20 @@ const styles = {
 	list: {
 		maxHeight: '100%',
 		overflow: 'auto',
-		padding: 0
+		padding: 0,
 	} as React.CSSProperties,
 
 	listItem: {
-		overflowX: 'hidden'
+		overflowX: 'hidden',
 	} as React.CSSProperties,
 
 	stickyButtonPanel: {
-		backgroundColor: 'white'
+		backgroundColor: 'white',
 	} as React.CSSProperties,
 
 	button: {
 		margin: 8,
-	} as React.CSSProperties
+	} as React.CSSProperties,
 };
 
 export interface IHistoryProps {
@@ -72,24 +72,19 @@ export class History extends Component<IHistoryProps, IHistoryState> {
 		this.setState({
 			checked: newChecked,
 		});
-	}
+	};
 
 	render() {
-		let commitHistoryList = this.props.commits.map( commit => {
+		let commitHistoryList = this.props.commits.map(commit => {
 			// Crop message to only include the summary.
-			let messageSummary = commit.message.length > 72 ?
-				commit.message.substr(0, 72) + '...' :
-				commit.message;
+			let messageSummary =
+				commit.message.length > 72 ? commit.message.substr(0, 72) + '...' : commit.message;
 
 			// Set the secondary text to be the commit signature.
 			let secondary = commit.date.toLocaleDateString() + ' - ' + commit.author;
 			return (
-				<ListItem
-					dense
-					key={commit.hash}
-					style={styles.listItem}
-				>
-					<ListItemText primary={messageSummary} secondary={secondary}/>
+				<ListItem dense key={commit.hash} style={styles.listItem}>
+					<ListItemText primary={messageSummary} secondary={secondary} />
 					<ListItemSecondaryAction>
 						<Checkbox
 							onChange={() => this.handleToggle(commit.hash)}
@@ -103,32 +98,42 @@ export class History extends Component<IHistoryProps, IHistoryState> {
 			<List style={styles.list}>
 				<ListSubheader style={styles.stickyButtonPanel}>
 					<Button
-						size='small'
-						color='default'
-						variant='raised'
+						size="small"
+						color="default"
+						variant="raised"
 						style={styles.button}
-						onClick={() => { this.onDiffPress(); }}
+						onClick={() => {
+							this.onDiffPress();
+						}}
 					>
 						Diff
 					</Button>
-					<Button size='small' color='default' variant='raised' style={styles.button}>
+					<Button size="small" color="default" variant="raised" style={styles.button}>
 						Create Review
 					</Button>
-					<IconButton color="primary" aria-label="Refresh" onClick={() => { this.props.refreshCommits(); }}>
+					<IconButton
+						color="primary"
+						aria-label="Refresh"
+						onClick={() => {
+							this.props.refreshCommits();
+						}}
+					>
 						<RefreshIcon />
 					</IconButton>
 				</ListSubheader>
-				{ commitHistoryList }
+				{commitHistoryList}
 			</List>
 		);
 	}
 }
 
 const mapStateToProps = (state: IState) => {
-	let { repository: { commits: commits } } = state;
-	const allCommits = commits.allIds.map( id => commits.byId[id]);
+	let {
+		repository: { commits: commits },
+	} = state;
+	const allCommits = commits.allIds.map(id => commits.byId[id]);
 	return {
-		commits: allCommits
+		commits: allCommits,
 	};
 };
 
@@ -148,6 +153,5 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
 		},
 	};
 };
-
 
 export default connect(mapStateToProps, mapDispatchToProps)(History);

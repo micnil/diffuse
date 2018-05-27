@@ -8,7 +8,7 @@ let styles = {
 	pane: {
 		flex: 1,
 		minWidth: 'fit-content',
-		margin: '5px'
+		margin: '5px',
 	} as CSSProperties,
 };
 

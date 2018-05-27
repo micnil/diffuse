@@ -25,7 +25,7 @@ export const loadCommits = (fromHash: string) => {
 		} catch (err) {
 			// TODO: implement a more generic approach to errors.
 			const error: IError = {
-				message: err.message
+				message: err.message,
 			};
 			dispatch(loadCommitsFailure(error));
 			console.error(err);
@@ -34,8 +34,10 @@ export const loadCommits = (fromHash: string) => {
 };
 
 export const refreshCommitsRequest = () => createAction(REFRESH_COMMITS_REQUEST);
-export const refreshCommitsSuccess = (commits: ICommit[]) => createAction(REFRESH_COMMITS_SUCCESS, commits);
-export const refreshCommitsFailure = (error: IError) => createAction(REFRESH_COMMITS_FAILURE, error);
+export const refreshCommitsSuccess = (commits: ICommit[]) =>
+	createAction(REFRESH_COMMITS_SUCCESS, commits);
+export const refreshCommitsFailure = (error: IError) =>
+	createAction(REFRESH_COMMITS_FAILURE, error);
 export const refreshCommits = () => {
 	return async (dispatch: Dispatch<RepositoryActions>, getState: () => IState, api: Api) => {
 		dispatch(refreshCommitsRequest());
@@ -47,7 +49,7 @@ export const refreshCommits = () => {
 		} catch (err) {
 			// TODO: implement a more generic approach to errors.
 			const error: IError = {
-				message: err.message
+				message: err.message,
 			};
 			dispatch(refreshCommitsFailure(error));
 			console.error(err);
@@ -55,14 +57,13 @@ export const refreshCommits = () => {
 	};
 };
 
-
 const actions = {
 	loadCommitsRequest,
 	loadCommitsSuccess,
 	loadCommitsFailure,
 	refreshCommitsRequest,
 	refreshCommitsSuccess,
-	refreshCommitsFailure
+	refreshCommitsFailure,
 };
 
 export type RepositoryActions = ActionsUnion<typeof actions>;

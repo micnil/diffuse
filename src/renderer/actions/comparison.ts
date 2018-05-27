@@ -9,9 +9,11 @@ export const CREATE_DIFF_SUCCESS = 'CREATE_DIFF_SUCCESS';
 export const CREATE_DIFF_FAILURE = 'CREATE_DIFF_FAILURE';
 export const SELECT_PATCH = 'SELECT_PATCH';
 
+// prettier-ignore
 export const createDiffRequest = () => createAction(CREATE_DIFF_REQUEST);
 export const createDiffSuccess = (comparison: IComparison) => createAction(CREATE_DIFF_SUCCESS, comparison);
 export const createDiffFailure = (error: IError) => createAction(CREATE_DIFF_FAILURE, error);
+
 export const createComparison = (hashes: string[]) => {
 	return async (dispatch: Dispatch<CompareActions>, getState: () => IState, api: Api) => {
 		dispatch(createDiffRequest());
@@ -21,7 +23,8 @@ export const createComparison = (hashes: string[]) => {
 			let sortedHashes = hashes.sort((a, b) => {
 				return repository.commits.allIds.indexOf(a) - repository.commits.allIds.indexOf(a);
 			});
-			let baseHash = repository.commits.byId[sortedHashes[sortedHashes.length - 1]].parentHash;
+			let baseHash =
+				repository.commits.byId[sortedHashes[sortedHashes.length - 1]].parentHash;
 			if (baseHash) {
 				sortedHashes.push(baseHash);
 			}
@@ -29,7 +32,7 @@ export const createComparison = (hashes: string[]) => {
 			dispatch(createDiffSuccess(comparison));
 		} catch (err) {
 			const error: IError = {
-				message: err.message
+				message: err.message,
 			};
 			dispatch(createDiffFailure(error));
 			console.error(err);
@@ -43,7 +46,7 @@ const actions = {
 	createDiffRequest,
 	createDiffSuccess,
 	createDiffFailure,
-	selectPatch
+	selectPatch,
 };
 
 export type CompareActions = ActionsUnion<typeof actions>;
