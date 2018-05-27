@@ -20,7 +20,11 @@ export const getScrollHeight = (numOriginalLines: number, lineChanges: ILineChan
 	return numScrollLines * LINE_HEIGHT;
 };
 
-export const getScrollSyncRanges = (numLines: number, lineChanges: IGenericLineChange): number[] => {
-	
-	return []
+export const getScrollSyncRanges = (numLines: number, lineChanges: IGenericLineChange[]): number[] => {
+	const documentHeight = numLines * LINE_HEIGHT;
+	return lineChanges.reduce((ranges: number[], lineChange: IGenericLineChange) => {
+		const stopPoint1 = ((lineChange.startLine - 1) * LINE_HEIGHT) / documentHeight;
+		const stopPoint2 = lineChange.endLine === 0 ? stopPoint1 : (lineChange.endLine * LINE_HEIGHT) / documentHeight;
+		return [...ranges, stopPoint1, stopPoint2];
+	}, []);
 }

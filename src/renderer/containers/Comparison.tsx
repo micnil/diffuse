@@ -8,8 +8,8 @@ import SyntaxHighlighter from 'react-syntax-highlighter';
 import { atomOneDark } from 'react-syntax-highlighter/styles/hljs';
 import { ILineChange } from '../diff/diffChange';
 import { originalDiffRenderer, modifiedDiffRenderer } from '../diffRenderers';
-import { FakeScrollbar, withScrollSync } from '../Scrollbar';
 import { Splitter, Pane } from '../SplitPane';
+import { FakeScrollbar, withScrollSync, getScrollHeight, getScrollSyncRanges } from '../scrollbar';
 
 const styles = {
 	resizableSplitter: {
@@ -78,24 +78,25 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 	readonly state = initialState;
 
 	renderSideBySideDiff() {
+		const {originalFileBlame, lineChanges, originalLineChanges, modifiedFileBlame, modifiedLineChanges} = this.state;
 		return (
-			<FakeScrollbar scrollHeight={2100}>
+			<FakeScrollbar scrollHeight={getScrollHeight(originalFileBlame.length, lineChanges)}>
 				<Splitter>
-					<PaneWithScrollSync style={{background: atomOneDark.hljs.background}}>
+					<PaneWithScrollSync ranges={getScrollSyncRanges(originalFileBlame.length, originalLineChanges)} style={{background: atomOneDark.hljs.background}}>
 						<SyntaxHighlighter
 							style={atomOneDark}
 							customStyle={styles.codeContainer}
-							renderer={originalDiffRenderer([...this.state.originalLineChanges], this.state.originalFileBlame)}
+							renderer={originalDiffRenderer([...originalLineChanges], originalFileBlame)}
 							showLineNumbers={true}
 						>
 							{this.state.originalFileContent}
 						</SyntaxHighlighter>
 					</PaneWithScrollSync>
-					<PaneWithScrollSync style={{background: atomOneDark.hljs.background}}>
+					<PaneWithScrollSync ranges={getScrollSyncRanges(modifiedFileBlame.length, modifiedLineChanges)} style={{background: atomOneDark.hljs.background}}>
 						<SyntaxHighlighter
 							style={atomOneDark}
 							customStyle={styles.codeContainer}
-							renderer={modifiedDiffRenderer([...this.state.modifiedLineChanges], this.state.modifiedFileBlame)}
+							renderer={modifiedDiffRenderer([...modifiedLineChanges], modifiedFileBlame)}
 							showLineNumbers={true}
 						>
 							{this.state.modifiedFileContent}
