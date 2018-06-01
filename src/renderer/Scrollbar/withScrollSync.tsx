@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import { ScrollContext } from './FakeScrollbar';
+import { ScrollSyncPoint } from './utils';
 
 type Props = Partial<{
 	forwardedRef: React.Ref<{}>;
 	scrollTopRelative: number;
-	ranges: number[];
+	ranges: ScrollSyncPoint[];
 }>;
 
 export const withScrollSync = <OriginalProps extends {}>(
@@ -15,7 +16,7 @@ export const withScrollSync = <OriginalProps extends {}>(
 		readonly wrappedComponent: React.RefObject<HTMLElement>;
 		static displayName = `ScrollSynced(${Component.name})`;
 		static defaultProps = {
-			ranges: [0, 1],
+			ranges: [[0, 0], [1, 1]],
 		};
 		constructor(props: ResultProps) {
 			super(props);
@@ -27,8 +28,10 @@ export const withScrollSync = <OriginalProps extends {}>(
 			if (!this.wrappedComponent) {
 				return;
 			}
-
+			
 			let { scrollHeight, clientHeight } = this.wrappedComponent.current;
+			// const documentRanges = this.props.ranges
+			// 	.map(range => range[0] / clientHeight)
 			let scrollTopMax = scrollHeight - clientHeight;
 			this.wrappedComponent.current.scrollTop =
 				scrollTopMax * lerp(this.props.ranges, scrollTopRelative);
@@ -54,22 +57,36 @@ export const withScrollSync = <OriginalProps extends {}>(
 	));
 };
 
-function lerp(ranges: number[], value: number) {
+function lerp(ranges: ScrollSyncPoint[], value: number) {
 	// If we have 4 stop points, it means we have 3 ranges of interpolation
 	//       range   range  range
 	//     |------|-------|-------|
 	// 	  ^      ^	     ^       ^
 	//  stop    stop    stop    stop
-	let numRanges = ranges.length - 1;
+	let rangeTopIndex = ranges.findIndex(range => value < range[1]);
 
-	// Edge case: If we have 3 ranges and value is 1, we want currentRange
-	// to be 2 because it is a zero-based index.
-	let currentRange = Math.min(Math.floor(value * numRanges), numRanges - 1);
+	// The value must be larger than the max value in range,
+	// use the last range.
+	if (rangeTopIndex == -1) {
+		rangeTopIndex = ranges.length - 1;
+	}
 
-	let positionInRange = value * numRanges - currentRange;
+	// The value is smaller than the first value in range,
+	// use the second value in range as "top" in range.
+	if (rangeTopIndex == 0) {
+		rangeTopIndex = 1;
+	}
+
+	// Bottom index is always the index before top.
+	let rangeBottomIndex = rangeTopIndex - 1;
+
+	let positionInRange =
+		(value - ranges[rangeBottomIndex][1]) /
+		(ranges[rangeTopIndex][1] - ranges[rangeBottomIndex][1]);
 
 	// linear interpolation: v0 + t * (v1 - v0);
 	return (
-		ranges[currentRange] + positionInRange * (ranges[currentRange + 1] - ranges[currentRange])
+		ranges[rangeBottomIndex][0] +
+		positionInRange * (ranges[rangeTopIndex][0] - ranges[rangeBottomIndex][0])
 	);
 }

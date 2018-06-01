@@ -15,7 +15,7 @@ import { loadCommits, createReview, refreshCommits, createComparison } from '../
 
 const styles = {
 	list: {
-		maxHeight: '100%',
+		maxHeight: '100vh',
 		overflow: 'auto',
 		padding: 0,
 	} as React.CSSProperties,

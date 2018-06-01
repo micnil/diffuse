@@ -2,6 +2,12 @@ import { ILineChange } from '../diff';
 import { IGenericLineChange } from '../common/types';
 
 const LINE_HEIGHT = 15;
+// export interface ScrollSyncRanges {
+// 	document: number[];
+// 	scroll: number[];
+// }
+
+export type ScrollSyncPoint = [number, number];
 
 export const getScrollHeight = (numOriginalLines: number, lineChanges: ILineChange[]): number => {
 	let numScrollLines = lineChanges.reduce((height: number, lineChange: ILineChange) => {
@@ -21,15 +27,25 @@ export const getScrollHeight = (numOriginalLines: number, lineChanges: ILineChan
 };
 
 export const getScrollSyncRanges = (
-	numLines: number,
-	lineChanges: IGenericLineChange[],
-): number[] => {
-	const documentHeight = numLines * LINE_HEIGHT;
+	syncScrollFrom: IGenericLineChange[],
+	syncScrollTo: IGenericLineChange[],
+): ScrollSyncPoint[] => {
+	return syncScrollFrom
+		.map((lineChange, i) => [lineChange, syncScrollTo[i]])
+		.filter(entry => getNumChangedLines(entry[1]) - getNumChangedLines(entry[0]) > 0)
+		.reduce((ranges: ScrollSyncPoint[], entry) => {
+			const syncedPoint1: ScrollSyncPoint = [
+				(entry[0].startLine - 1) * LINE_HEIGHT,
+				(entry[1].startLine - 1) * LINE_HEIGHT,
+			];
+			const syncedPoint2: ScrollSyncPoint = [
+				entry[0].endLine === 0 ? syncedPoint1[0] : entry[0].endLine * LINE_HEIGHT,
+				entry[1].endLine === 0 ? syncedPoint1[1] : entry[1].endLine * LINE_HEIGHT,
+			];
+			return [...ranges, syncedPoint1, syncedPoint2];
+		}, []);
+};
 
-	// prettier-ignore
-	return lineChanges.reduce((ranges: number[], lineChange: IGenericLineChange) => {
-		const stopPoint1 = ((lineChange.startLine - 1) * LINE_HEIGHT) / documentHeight;
-		const stopPoint2 = lineChange.endLine === 0 ? stopPoint1 : (lineChange.endLine * LINE_HEIGHT) / documentHeight;
-		return [...ranges, stopPoint1, stopPoint2];
-	}, []);
+const getNumChangedLines = (lineChange: IGenericLineChange) => {
+	return lineChange.endLine !== 0 ? lineChange.endLine - lineChange.startLine + 1 : 0;
 };

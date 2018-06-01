@@ -9,7 +9,7 @@ import { selectPatch } from '../actions';
 
 const styles = {
 	menuList: {
-		maxHeight: '100%',
+		maxHeight: '100vh',
 		overflow: 'auto',
 		padding: 0,
 	} as React.CSSProperties,

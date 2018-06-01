@@ -9,7 +9,13 @@ import { atomOneDark } from 'react-syntax-highlighter/styles/hljs';
 import { ILineChange } from '../diff/diffChange';
 import { originalDiffRenderer, modifiedDiffRenderer } from '../diffRenderers';
 import { Splitter, Pane } from '../SplitPane';
-import { FakeScrollbar, withScrollSync, getScrollHeight, getScrollSyncRanges } from '../scrollbar';
+import {
+	FakeScrollbar,
+	withScrollSync,
+	getScrollHeight,
+	getScrollSyncRanges,
+	ScrollSyncPoint,
+} from '../scrollbar';
 
 const styles = {
 	resizableSplitter: {
@@ -57,6 +63,8 @@ export interface IComparisonState {
 	lineChanges?: ILineChange[];
 	originalLineChanges?: IGenericLineChange[];
 	modifiedLineChanges?: IGenericLineChange[];
+	originalScrollSyncRanges?: ScrollSyncPoint[];
+	modifiedScrollSyncRanges?: ScrollSyncPoint[];
 	originalFileBlame: string[];
 	modifiedFileBlame: string[];
 	originalFileContent: string;
@@ -83,12 +91,14 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 			originalLineChanges,
 			modifiedFileBlame,
 			modifiedLineChanges,
+			originalScrollSyncRanges,
+			modifiedScrollSyncRanges
 		} = this.state;
 		return (
 			<FakeScrollbar scrollHeight={getScrollHeight(originalFileBlame.length, lineChanges)}>
 				<Splitter>
 					<PaneWithScrollSync
-						ranges={getScrollSyncRanges(originalFileBlame.length, originalLineChanges)}
+						ranges={originalScrollSyncRanges}
 						style={{ background: atomOneDark.hljs.background }}
 					>
 						<SyntaxHighlighter
@@ -104,7 +114,7 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 						</SyntaxHighlighter>
 					</PaneWithScrollSync>
 					<PaneWithScrollSync
-						ranges={getScrollSyncRanges(modifiedFileBlame.length, modifiedLineChanges)}
+						ranges={modifiedScrollSyncRanges}
 						style={{ background: atomOneDark.hljs.background }}
 					>
 						<SyntaxHighlighter
@@ -204,10 +214,31 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 		let lineChanges = diffComputer.computeDiff();
 		let originalLineChanges = getOriginalLineChanges(lineChanges);
 		let modifiedLineChanges = getModifiedLineChanges(lineChanges);
+		let originalScrollSyncRanges: ScrollSyncPoint[] = getScrollSyncRanges(
+			originalLineChanges,
+			modifiedLineChanges,
+		).map(syncPoints => [
+			syncPoints[0] / (originalFile.blame.length * 15),
+			syncPoints[1] / (modifiedFile.blame.length * 15)
+		] as ScrollSyncPoint)
+		let modifiedScrollSyncRanges: ScrollSyncPoint[] = getScrollSyncRanges(
+			modifiedLineChanges,
+			originalLineChanges,
+		).map(syncPoints => [
+			syncPoints[0] / (modifiedFile.blame.length * 15),
+			syncPoints[1] / (originalFile.blame.length * 15)
+		] as ScrollSyncPoint)
+
+		originalScrollSyncRanges = [[0, 0], ...originalScrollSyncRanges, [1,1]];
+		modifiedScrollSyncRanges = [[0, 0], ...modifiedScrollSyncRanges, [1,1]];
+		console.log('originalScrollSyncRanges: ', originalScrollSyncRanges)
+		console.log('modifiedScrollSyncRanges: ', modifiedScrollSyncRanges)
 		return {
 			lineChanges,
 			originalLineChanges,
 			modifiedLineChanges,
+			originalScrollSyncRanges,
+			modifiedScrollSyncRanges,
 			originalFileBlame: originalFile.blame,
 			modifiedFileBlame: modifiedFile.blame,
 			originalFileContent: originalFile.content,
