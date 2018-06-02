@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { IState } from '../reducers';
-import { Dispatch } from '../common/types';
+import { IState } from '@/reducers';
+import { Dispatch } from '@/common/types';
 import History from './History';
 import PatchTree from './PatchTree';
 

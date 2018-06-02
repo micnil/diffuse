@@ -9,7 +9,7 @@ import Checkbox from '@material-ui/core/Checkbox';
 import Button from '@material-ui/core/Button';
 import IconButton from '@material-ui/core/IconButton';
 import RefreshIcon from '@material-ui/icons/Refresh';
-import { IState } from '../reducers';
+import { IState } from '@/reducers';
 import { Dispatch, ICommit } from '../common/types';
 import { loadCommits, createReview, refreshCommits, createComparison } from '../actions';
 

@@ -1,21 +1,21 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { IState } from '../reducers';
-import { IFile, Dispatch, IPatch, PatchStatus, IGenericLineChange } from '../common/types';
-import { getOriginalLineChanges, getModifiedLineChanges } from '../common/core';
-import { DiffComputer } from '../diff/diffComputer';
+import { IState } from '@/reducers';
+import { IFile, Dispatch, IPatch, PatchStatus, IGenericLineChange } from '@/common/types';
+import { getOriginalLineChanges, getModifiedLineChanges } from '@/common/core';
+import { DiffComputer } from '@/diff/diffComputer';
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { atomOneDark } from 'react-syntax-highlighter/styles/hljs';
-import { ILineChange } from '../diff/diffChange';
-import { originalDiffRenderer, modifiedDiffRenderer } from '../diffRenderers';
-import { Splitter, Pane } from '../SplitPane';
+import { ILineChange } from '@/diff/diffChange';
+import { originalDiffRenderer, modifiedDiffRenderer } from '@/diffRenderers';
+import { Splitter, Pane } from '@/SplitPane';
 import {
 	FakeScrollbar,
 	withScrollSync,
 	getScrollHeight,
 	getScrollSyncRanges,
 	ScrollSyncPoint,
-} from '../scrollbar';
+} from '@/scrollbar';
 
 const styles = {
 	resizableSplitter: {

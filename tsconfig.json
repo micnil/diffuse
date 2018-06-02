@@ -3,7 +3,10 @@
     "compilerOptions": {
         "baseUrl": "./",
         "paths": {
-            "*": [ "node_modules/@types/*", "*"]
+            "*": [ "node_modules/@types/*", "*"],
+            "@/*": [
+                "src/renderer/*"
+            ]
         },
         "jsx": "react",
         "suppressImplicitAnyIndexErrors": true,

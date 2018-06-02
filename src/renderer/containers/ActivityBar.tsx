@@ -1,13 +1,13 @@
 import React, { Component, CSSProperties } from 'react';
 import { connect } from 'react-redux';
-import { IState } from '../reducers';
-import { Dispatch } from '../common/types';
+import { IState } from '@/reducers';
+import { Dispatch } from '@/common/types';
 import ListItemIcon from '@material-ui/core/List';
 import ListIcon from '@material-ui/icons/List';
 import CompareIcon from '@material-ui/icons/Compare';
 import MenuList from '@material-ui/core/MenuList';
 import MenuItem from '@material-ui/core/MenuItem';
-import { createNavigation } from '../actions';
+import { createNavigation } from '@/actions';
 
 const styles = {
 	listItemIcon: {
