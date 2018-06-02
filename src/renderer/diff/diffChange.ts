@@ -74,7 +74,7 @@ export interface IChange {
  * A line change
  */
 export interface ILineChange extends IChange {
-	readonly charChanges: ICharChange[];
+	readonly charChanges?: ICharChange[];
 }
 
 /**
