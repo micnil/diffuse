@@ -1,11 +1,7 @@
 import { ILineChange } from '../diff';
 import { IGenericLineChange } from '../common/types';
 
-const LINE_HEIGHT = 15;
-// export interface ScrollSyncRanges {
-// 	document: number[];
-// 	scroll: number[];
-// }
+export const LINE_HEIGHT = 15;
 
 export type ScrollSyncPoint = [number, number];
 
@@ -35,8 +31,8 @@ export const getScrollSyncRanges = (
 		.filter(entry => getNumChangedLines(entry[1]) - getNumChangedLines(entry[0]) > 0)
 		.reduce((ranges: ScrollSyncPoint[], entry) => {
 			const syncedPoint1: ScrollSyncPoint = [
-				(entry[0].startLine - 1) * LINE_HEIGHT,
-				(entry[1].startLine - 1) * LINE_HEIGHT,
+				entry[0].endLine === 0 ? entry[0].startLine * LINE_HEIGHT : (entry[0].startLine - 1) * LINE_HEIGHT,
+				entry[1].endLine === 0 ? entry[1].startLine * LINE_HEIGHT : (entry[1].startLine - 1) * LINE_HEIGHT,
 			];
 			const syncedPoint2: ScrollSyncPoint = [
 				entry[0].endLine === 0 ? syncedPoint1[0] : entry[0].endLine * LINE_HEIGHT,
@@ -46,6 +42,6 @@ export const getScrollSyncRanges = (
 		}, []);
 };
 
-const getNumChangedLines = (lineChange: IGenericLineChange) => {
+export const getNumChangedLines = (lineChange: IGenericLineChange) => {
 	return lineChange.endLine !== 0 ? lineChange.endLine - lineChange.startLine + 1 : 0;
 };

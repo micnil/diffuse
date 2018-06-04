@@ -231,6 +231,8 @@ export class Comparison extends Component<IComparisonProps, IComparisonState> {
 
 		originalScrollSyncRanges = [[0, 0], ...originalScrollSyncRanges, [1,1]];
 		modifiedScrollSyncRanges = [[0, 0], ...modifiedScrollSyncRanges, [1,1]];
+		console.log('originalLineChanges: ', originalLineChanges)
+		console.log('modifiedLineChanges: ', modifiedLineChanges)
 		console.log('originalScrollSyncRanges: ', originalScrollSyncRanges)
 		console.log('modifiedScrollSyncRanges: ', modifiedScrollSyncRanges)
 		return {

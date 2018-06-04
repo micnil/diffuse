@@ -1,16 +1,35 @@
 import { getOriginalLineChanges, getModifiedLineChanges } from '../src/renderer/common/core';
 import { ILineChange } from '../src/renderer/diff';
 import { IGenericLineChange } from '../src/renderer/common/types';
+import { getNumChangedLines, getScrollSyncRanges, LINE_HEIGHT } from '@/scrollbar';
 
-describe('Convert line changes to generic line changes', () => {
-	test('Original changes to generic', () => {
+describe('Line changes', () => {
+	test('Convert original changes to generic', () => {
 		const originalLineChanges = getOriginalLineChanges(lineChanges);
 		expect(originalLineChanges).toEqual(lineChangesOriginalGeneric);
 	});
 
-	test('Modified changes to generic', () => {
+	test('Convert modified changes to generic', () => {
 		const modifiedLineChanges = getModifiedLineChanges(lineChanges);
 		expect(modifiedLineChanges).toEqual(lineChangesModifiedGeneric);
+	});
+
+	test('Get number of lines changed', () => {
+		expect(getNumChangedLines(lineChangesModifiedGeneric[0])).toBe(6);
+		expect(getNumChangedLines(lineChangesModifiedGeneric[1])).toBe(9);
+		expect(getNumChangedLines(lineChangesModifiedGeneric[2])).toBe(3);
+		expect(getNumChangedLines(lineChangesOriginalGeneric[0])).toBe(0);
+	});
+
+	test('Get scroll sync ranges', () => {
+		expect(getScrollSyncRanges(lineChangesOriginalGeneric, lineChangesModifiedGeneric)).toEqual(
+			[
+				[68 * LINE_HEIGHT, 68 * LINE_HEIGHT],
+				[68 * LINE_HEIGHT, 74 * LINE_HEIGHT],
+				[139 * LINE_HEIGHT, 145 * LINE_HEIGHT],
+				[139 * LINE_HEIGHT, 154 * LINE_HEIGHT],
+			],
+		);
 	});
 });
 

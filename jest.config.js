@@ -15,4 +15,7 @@ module.exports = {
       "json",
       "node"
     ],
+    "moduleNameMapper": {
+      "^@/(.*)": "<rootDir>/src/renderer/$1"
+    }
   }
