@@ -21,7 +21,7 @@ export const createComparison = (hashes: string[]) => {
 		try {
 			const { repository } = getState();
 			let sortedHashes = hashes.sort((a, b) => {
-				return repository.commits.allIds.indexOf(a) - repository.commits.allIds.indexOf(a);
+				return repository.commits.allIds.indexOf(a) - repository.commits.allIds.indexOf(b);
 			});
 			let baseHash =
 				repository.commits.byId[sortedHashes[sortedHashes.length - 1]].parentHash;
