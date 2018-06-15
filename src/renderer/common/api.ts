@@ -1,5 +1,5 @@
 import * as Git from 'simple-git/promise';
-import { ICommit, IComparison, IDiff, IFile, PatchStatus } from './types';
+import { ICommit, IComparison, IPatch, IFile, PatchStatus } from './types';
 
 export default interface Api {
 	getCommits(repoPath: string, numCommits: number): Promise<ICommit[]>;
@@ -7,22 +7,24 @@ export default interface Api {
 	diffCommits(repoPath: string, hashes: string[]): Promise<IComparison>;
 }
 
+type GitRawOutput = {
+	raw: string;
+};
 
-export async function getCommits (repoPath: string, numCommits: number): Promise<ICommit[]>;
-export async function getCommits (repoPath: string, numCommits: number, fromHash: string): Promise<ICommit[]>;
+export async function getCommits(repoPath: string, numCommits: number): Promise<ICommit[]>;
+export async function getCommits(repoPath: string, numCommits: number, fromHash: string): Promise<ICommit[]>;
 export async function getCommits(repoPath: string, numCommits: number, fromHash?: string): Promise<ICommit[]> {
 	try {
-
 		let git = Git(repoPath);
 		let logSummary = await git.log([`-n ${numCommits}`, '--parents']);
 
-		let commits: ICommit[] = logSummary.all.map( gitCommit => {
+		let commits: ICommit[] = logSummary.all.map(gitCommit => {
 			return {
 				hash: gitCommit.hash,
 				parentHash: gitCommit.parent,
 				author: gitCommit.author_name + `<${gitCommit.author_email}>`,
 				date: new Date(gitCommit.date),
-				message: gitCommit.message
+				message: gitCommit.message,
 			};
 		});
 
@@ -33,70 +35,139 @@ export async function getCommits(repoPath: string, numCommits: number, fromHash?
 }
 
 export async function diffCommits(repoPath: string, hashes: string[]): Promise<IComparison> {
-
 	let git = Git(repoPath);
 	// Initialize the comparison return data
 	let comparisons: IComparison = {
 		allHashes: hashes,
 		diffsByHash: hashes.reduce((obj, item) => {
-				obj[item] = {};
-				return obj;
+				// Add the hash as a key with empty object as value
+				return Object.assign({}, obj, { [item]: {}})
 			}, {}),
 		filesByHash: hashes.reduce((obj, item) => {
-				obj[item] = {
-					allFiles: [],
-					byFile: {}
-				};
-				return obj;
+				return Object.assign({}, obj, {
+					[item]: {
+						allFiles: [],
+						byFile: {},
+					}
+				});
 			}, {}),
 	};
 
-	let showChangedFilesRaw = await git.raw(['show', '--name-only', ...hashes, '--format=%m%H']);
-	let changedFiles = parseShowChangedFiles(showChangedFilesRaw);
+	// Get the diff patches
+	const diffTreeJobs = getDiffTree(async (fromHash, toHash) => ({
+		fromHash,
+		toHash,
+		raw: await git.raw(['diff-tree', '--raw', '-r', '-M', `${fromHash}..${toHash}`]),
+	}), hashes);
+	const diffTreeRaw: DiffTreeRaw[] = await Promise.all(diffTreeJobs);
+	const diffTrees: DiffTree = diffTreeRaw.reduce((patches: DiffTree, diff: DiffTreeRaw) => {
+		const diffTreePatches = parseDiffTree(diff.raw);
+		return [
+			...patches,
+			...diffTreePatches.map(patch => ({
+				fromHash: diff.fromHash,
+				toHash: diff.toHash,
+				...patch,
+			})),
+		];
+	}, []);
 
-	for (let from = 0; from < hashes.length; from++) {
-		for (let to = from + 1; to < hashes.length; to++) {
+	// get the blame (and file contents)
+	const blameJobs = getBlame(async (hash: string, fileName: string) => ({
+		hash,
+		fileName,
+		raw: await git.raw(['blame', '-s', '-l', hash, '--', fileName]),
+	}), diffTrees);
 
-			if (!changedFiles[hashes[to]]) {
-				continue;
-			}
+	const rawBlames = await Promise.all(blameJobs);
+	const blames: BlameWithFileId[] = rawBlames.map(rawBlame => {
+		const blame = parseBlame(rawBlame.raw);
+		return {
+			hash: rawBlame.hash,
+			fileName: rawBlame.fileName,
+			content: blame.content,
+			blame: blame.blame,
+		};
+	});
 
-			let rawDiffNameStatuses: string[] = await Promise.all(changedFiles[hashes[to]].map(file => {
-				return git.raw(['diff', '--name-status', '--follow', `${hashes[from]}..${hashes[to]}`, '--', file]);
-			}));
-			let diffNameStatusRaw = rawDiffNameStatuses.join('');
-			let diff: IDiff = parseDiffNameStatus(diffNameStatusRaw, hashes[from], hashes[to]);
+	// Build the output
+	diffTrees.forEach(diff => {
+		// fromMap initialized for all hashes above
+		let fromMap = comparisons.diffsByHash[diff.fromHash];
 
-			for (let patch of diff.patches) {
-				if (!comparisons.filesByHash[diff.to].byFile[patch.modifiedFile] && patch.modifiedFile) {
-					// get new file
-					let newFileBlameRaw = await git.raw(['blame', '-s', '-l', diff.to, '--', patch.modifiedFile]);
+		// Create Diff object (but don't overwrite anything if it already existed)
+		fromMap[diff.toHash] = Object.assign({}, {
+			fromHash: diff.fromHash,
+			toHash: diff.toHash,
+			patches: [],
+		}, fromMap[diff.toHash]);
 
-					let newFile = parseBlame(newFileBlameRaw, diff.to, patch.modifiedFile);
-					comparisons.filesByHash[diff.to].allFiles.push(patch.modifiedFile);
-					comparisons.filesByHash[diff.to].byFile[patch.modifiedFile] = newFile;
-				}
+		// Push a new patch
+		fromMap[diff.toHash].patches.push({
+			status: diff.patchStatus,
+			modifiedFile: diff.modifiedFileName,
+			originalFile: diff.originalFileName,
+		} as IPatch);
+	});
 
-				if (!comparisons.filesByHash[diff.from].byFile[patch.originalFile] && patch.originalFile) {
-					// get old file
-					let oldFileBlameRaw = await git.raw(['blame', '-s', '-l', diff.from, '--', patch.originalFile]);
-
-					let oldFile = parseBlame(oldFileBlameRaw, diff.from, patch.originalFile);
-					comparisons.filesByHash[diff.from].allFiles.push(patch.originalFile);
-					comparisons.filesByHash[diff.from].byFile[patch.originalFile] = oldFile;
-				}
-			}
-
-			comparisons.diffsByHash[hashes[from]][hashes[to]] = diff;
-		}
-	}
-
+	blames.forEach(blame => {
+		let fileMap = comparisons.filesByHash[blame.hash];
+		fileMap.byFile[blame.fileName] = {
+			hash: blame.hash,
+			filePath: blame.fileName,
+			blame: blame.blame,
+			content: blame.content,
+		} as IFile;
+		fileMap.allFiles.push(blame.fileName);
+	});
 
 	return comparisons;
 }
 
-function parseBlame(raw: string, hash: string, file: string): IFile {
+type FileId = {
+	hash: string;
+	fileName: string;
+};
+type BlameRaw = GitRawOutput & FileId;
+type BlameCommand = (hash: string, fileName: string) => Promise<BlameRaw>;
+function getBlame(blameCommand: BlameCommand, diffTrees: DiffTree): Promise<BlameRaw>[] {
+	let filesByHash = {};
+	return diffTrees.reduce((blameRawJobs: Promise<BlameRaw>[], patch: DiffTreePatchWithId) => {
+		let currentBlameRawJobs: Promise<BlameRaw>[] = [];
+		// Initialize if undefined
+		filesByHash[patch.fromHash] = filesByHash[patch.fromHash] || {}
+		filesByHash[patch.toHash] = filesByHash[patch.toHash] || {}
 
+		if (patch.originalFileName && !filesByHash[patch.fromHash][patch.originalFileName]) {
+			currentBlameRawJobs.push(blameCommand(patch.fromHash, patch.originalFileName));
+		}
+
+		if (patch.modifiedFileName && !filesByHash[patch.toHash][patch.modifiedFileName]) {
+			currentBlameRawJobs.push(blameCommand(patch.toHash, patch.modifiedFileName));
+		}
+		return [...blameRawJobs, ...currentBlameRawJobs];
+	}, []);
+}
+
+type ComparisonId = {
+	fromHash: string;
+	toHash: string;
+};
+type DiffTreeRaw = GitRawOutput & ComparisonId;
+type DiffTreeCommand = (fromHash: string, toHash: string) => Promise<DiffTreeRaw>;
+function getDiffTree(diffTreeCommand: DiffTreeCommand, hashes: string[]): Promise<DiffTreeRaw>[] {
+	if (hashes.length == 1) return [];
+	let [fromHash, ...rest] = hashes;
+	let diffTree = rest.map(toHash => diffTreeCommand(fromHash, toHash));
+	return diffTree.concat(getDiffTree(diffTreeCommand, rest));
+}
+
+type Blame = {
+	blame: string[];
+	content: string;
+};
+type BlameWithFileId = Blame & FileId;
+function parseBlame(raw: string): Blame {
 	let lines = raw.split('\n').filter(Boolean);
 	let blame = [];
 	let content = [];
@@ -106,19 +177,112 @@ function parseBlame(raw: string, hash: string, file: string): IFile {
 		// Split by the first "<digit>)" ("17)" in examle above)
 		let regexp = / \d+\) ?/g;
 		let result = regexp.exec(line);
-		if(result) {
+		if (result) {
 			blame.push(line.slice(1, result.index));
 			content.push(line.slice(regexp.lastIndex));
 		}
 	}
 
 	return {
-		hash: hash,
-		filePath: file,
 		blame: blame,
-		content: content.join('\n')
+		content: content.join('\n'),
 	};
+}
 
+type DiffTree = Array<DiffTreePatchWithId>;
+type DiffTreePatchWithId = DiffTreePatch & ComparisonId;
+type DiffTreePatch = {
+	originalChecksum: string;
+	modifiedChecksum: string;
+	originalFileName: string;
+	modifiedFileName: string;
+	patchStatus: PatchStatus;
+};
+function parseDiffTree(raw: string): DiffTreePatch[] {
+	// Example raw:
+	// :000000 100644 1234567... 0000000... D  __tests__/core.spec.tsx
+	// :000000 100644 0000000... 1234567... A  jest.config.js
+	// :100644 100644 bcd1234... 0123456... M  package.json
+	// :100644 100644 abcd123... 1234567... R86 file1 file3
+	// :100644 100644 abcd123... 1234567... C68 file1 file2
+
+	let lines: string[] = raw.split('\n').filter(Boolean);
+	let patches: DiffTreePatch[] = [];
+	for (let line of lines) {
+		// Split by space/tabs.
+		// Third part is original checksum.
+		// Fourth part is modified checksum.
+		// Fifth part will be patchStatus.
+		// Sixth part will be the file that was changed,
+		// the Seventh optional part (only if patchStatus is C or R)
+		// is the new name of the file.
+		let parts = line.split(/\s+/);
+
+		const originalChecksum = parts[2];
+		const modifiedChecksum = parts[3];
+
+		let patchStatus: PatchStatus;
+		switch (parts[4].charAt(0)) {
+			case 'A':
+				patchStatus = PatchStatus.Added;
+				break;
+			case 'C':
+				patchStatus = PatchStatus.Copied;
+				break;
+			case 'D':
+				patchStatus = PatchStatus.Deleted;
+				break;
+			case 'M':
+				patchStatus = PatchStatus.Modified;
+				break;
+			case 'R':
+				patchStatus = PatchStatus.Renamed;
+				break;
+			case 'U':
+				patchStatus = PatchStatus.Unmerged;
+				break;
+			case 'T':
+				patchStatus = PatchStatus.TypeChanged;
+				break;
+			case 'X':
+				patchStatus = PatchStatus.Unknown;
+				break;
+			case 'B':
+				patchStatus = PatchStatus.Broken;
+				break;
+			default:
+				console.error(`Unknown diff status
+					${parts[0].charAt(0)}
+				, probably bad input/parsing error.`);
+				patchStatus = PatchStatus.Unknown;
+		}
+
+		let originalFileName;
+		let modifiedFileName;
+		if (patchStatus == PatchStatus.Copied || patchStatus == PatchStatus.Renamed) {
+			modifiedFileName = parts[6];
+			originalFileName = parts[5];
+		} else if (patchStatus == PatchStatus.Added) {
+			modifiedFileName = parts[5];
+			originalFileName = '';
+		} else if (patchStatus == PatchStatus.Deleted) {
+			modifiedFileName = '';
+			originalFileName = parts[5];
+		} else {
+			modifiedFileName = parts[5];
+			originalFileName = parts[5];
+		}
+
+		patches.push({
+			patchStatus,
+			originalChecksum,
+			modifiedChecksum,
+			originalFileName,
+			modifiedFileName,
+		});
+	}
+
+	return patches;
 }
 
 function parseShowChangedFiles(raw: string): { [hash: string]: string[] } {
@@ -140,72 +304,4 @@ function parseShowChangedFiles(raw: string): { [hash: string]: string[] } {
 		}
 	}
 	return ret;
-}
-
-function parseDiffNameStatus(raw: string, from: string, to: string): IDiff {
-	let lines: string[] = raw.split('\n').filter(Boolean);
-	let diff: IDiff = {
-		from: from,
-		to: to,
-		patches: []
-	};
-	for (let line of lines) {
-
-		// Split by space/tabs. First part will be diffstatus,
-		// second part will be the file that was changed,
-		// the third optional part (only if diffstatus is C or R)
-		// is the new name of the file.
-		let parts = line.split(/\s+/);
-
-		let oldFile;
-		let newFile;
-		let diffStatus: PatchStatus;
-		switch (parts[0].charAt(0)) {
-			case 'A': diffStatus = PatchStatus.Added;
-				break;
-			case 'C': diffStatus = PatchStatus.Copied;
-				break;
-			case 'D': diffStatus = PatchStatus.Deleted;
-				break;
-			case 'M': diffStatus = PatchStatus.Modified;
-				break;
-			case 'R': diffStatus = PatchStatus.Renamed;
-				break;
-			case 'U': diffStatus = PatchStatus.Unmerged;
-				break;
-			case 'T': diffStatus = PatchStatus.TypeChanged;
-				break;
-			case 'X': diffStatus = PatchStatus.Unknown;
-				break;
-			case 'B': diffStatus = PatchStatus.Broken;
-				break;
-			default:
-				console.error(`Unknown diff status
-					${parts[0].charAt(0)}
-				, probably bad input/parsing error.`);
-				diffStatus = PatchStatus.Unknown;
-		}
-
-		if (diffStatus == PatchStatus.Copied || diffStatus == PatchStatus.Renamed) {
-			newFile = parts[2];
-			oldFile = parts[1];
-		} else if (diffStatus == PatchStatus.Added) {
-			newFile = parts[1];
-			oldFile = '';
-		} else if (diffStatus == PatchStatus.Deleted) {
-			newFile = '';
-			oldFile = parts[1];
-		} else {
-			newFile = parts[1];
-			oldFile = parts[1];
-		}
-
-		diff.patches.push({
-			status: diffStatus,
-			modifiedFile: newFile,
-			originalFile: oldFile
-		});
-	}
-
-	return diff;
 }
