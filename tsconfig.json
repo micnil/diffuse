@@ -8,7 +8,10 @@
 		},
 		"jsx": "react",
 		"suppressImplicitAnyIndexErrors": true,
-		"strictNullChecks": false
+		"strictNullChecks": false,
+		// Remove when bug in typescript is fixed
+		// https://github.com/mui-org/material-ui/issues/11656#issuecomment-394292561
+		"keyofStringsOnly": true 
 	},
 	"exclude": ["node_modules", "dist"],
 	"include": ["src/**/*", "__tests__"]

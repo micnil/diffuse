@@ -1,15 +1,15 @@
 import * as Git from 'simple-git/promise';
 import { ICommit, IComparison, IPatch, IFile, PatchStatus } from './types';
 
+type GitRawOutput = {
+	raw: string;
+};
+
 export default interface Api {
 	getCommits(repoPath: string, numCommits: number): Promise<ICommit[]>;
 	getCommits(repoPath: string, numCommits: number, fromHash: string): Promise<ICommit[]>;
 	diffCommits(repoPath: string, hashes: string[]): Promise<IComparison>;
 }
-
-type GitRawOutput = {
-	raw: string;
-};
 
 export async function getCommits(repoPath: string, numCommits: number): Promise<ICommit[]>;
 export async function getCommits(repoPath: string, numCommits: number, fromHash: string): Promise<ICommit[]>;
