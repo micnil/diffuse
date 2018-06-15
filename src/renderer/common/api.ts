@@ -41,26 +41,33 @@ export async function diffCommits(repoPath: string, hashes: string[]): Promise<I
 		allHashes: hashes,
 		diffsByHash: hashes.reduce((obj, item) => {
 				// Add the hash as a key with empty object as value
-				return Object.assign({}, obj, { [item]: {}})
+			return Object.assign({}, obj, { [item]: {} });
 			}, {}),
 		filesByHash: hashes.reduce((obj, item) => {
 				return Object.assign({}, obj, {
 					[item]: {
 						allFiles: [],
 						byFile: {},
-					}
+				},
 				});
 			}, {}),
 	};
+
+	// Start a command to get all file names that has changed in all selected commits
+	let showChangedFilesRawJob = git.raw(['show', '--name-only', ...hashes, '--format=%m%H']);
 
 	// Get the diff patches
 	const diffTreeJobs = getDiffTree(async (fromHash, toHash) => ({
 		fromHash,
 		toHash,
 		raw: await git.raw(['diff-tree', '--raw', '-r', '-M', `${fromHash}..${toHash}`]),
-	}), hashes);
+	}),	hashes);
 	const diffTreeRaw: DiffTreeRaw[] = await Promise.all(diffTreeJobs);
-	const diffTrees: DiffTree = diffTreeRaw.reduce((patches: DiffTree, diff: DiffTreeRaw) => {
+	let diffTrees: DiffTree = diffTreeRaw.reduce((patches: DiffTree, diff: DiffTreeRaw) => {
+		// TODO: Remove if statement
+		if (!diff.raw) {
+			console.log(diff);
+		}
 		const diffTreePatches = parseDiffTree(diff.raw);
 		return [
 			...patches,
@@ -72,12 +79,30 @@ export async function diffCommits(repoPath: string, hashes: string[]): Promise<I
 		];
 	}, []);
 
+	// Filter the patches to only include files that are included in 
+	// among the changed files.
+	// TODO: Measure if this improves performance
+	let changedFiles = parseShowChangedFiles(await showChangedFilesRawJob);
+	diffTrees = diffTrees.filter(diff => {
+		// Get the hashes included in this patch
+		let includedHashes = hashes.slice(
+			hashes.findIndex(hash => hash === diff.fromHash), 
+			hashes.findIndex(hash => hash === diff.toHash)
+		);
+		// Get all changed files
+		let includedFiles = includedHashes.reduce((files, hash) => {
+			return files.concat(changedFiles[hash])
+		}, [])
+		// Filter
+		return includedFiles.includes(diff.originalFileName) || includedFiles.includes(diff.modifiedFileName)
+	})
+
 	// get the blame (and file contents)
 	const blameJobs = getBlame(async (hash: string, fileName: string) => ({
 		hash,
 		fileName,
 		raw: await git.raw(['blame', '-s', '-l', hash, '--', fileName]),
-	}), diffTrees);
+	}),	diffTrees);
 
 	const rawBlames = await Promise.all(blameJobs);
 	const blames: BlameWithFileId[] = rawBlames.map(rawBlame => {
@@ -97,10 +122,10 @@ export async function diffCommits(repoPath: string, hashes: string[]): Promise<I
 
 		// Create Diff object (but don't overwrite anything if it already existed)
 		fromMap[diff.toHash] = Object.assign({}, {
-			fromHash: diff.fromHash,
-			toHash: diff.toHash,
-			patches: [],
-		}, fromMap[diff.toHash]);
+				fromHash: diff.fromHash,
+				toHash: diff.toHash,
+				patches: [],
+			}, fromMap[diff.toHash]);
 
 		// Push a new patch
 		fromMap[diff.toHash].patches.push({
@@ -135,8 +160,8 @@ function getBlame(blameCommand: BlameCommand, diffTrees: DiffTree): Promise<Blam
 	return diffTrees.reduce((blameRawJobs: Promise<BlameRaw>[], patch: DiffTreePatchWithId) => {
 		let currentBlameRawJobs: Promise<BlameRaw>[] = [];
 		// Initialize if undefined
-		filesByHash[patch.fromHash] = filesByHash[patch.fromHash] || {}
-		filesByHash[patch.toHash] = filesByHash[patch.toHash] || {}
+		filesByHash[patch.fromHash] = filesByHash[patch.fromHash] || {};
+		filesByHash[patch.toHash] = filesByHash[patch.toHash] || {};
 
 		if (patch.originalFileName && !filesByHash[patch.fromHash][patch.originalFileName]) {
 			currentBlameRawJobs.push(blameCommand(patch.fromHash, patch.originalFileName));
