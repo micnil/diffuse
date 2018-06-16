@@ -91,11 +91,11 @@ export async function diffCommits(repoPath: string, hashes: string[]): Promise<I
 		);
 		// Get all changed files
 		let includedFiles = includedHashes.reduce((files, hash) => {
-			return files.concat(changedFiles[hash])
-		}, [])
+			return files.concat(changedFiles[hash]);
+		}, []);
 		// Filter
-		return includedFiles.includes(diff.originalFileName) || includedFiles.includes(diff.modifiedFileName)
-	})
+		return includedFiles.includes(diff.originalFileName) || includedFiles.includes(diff.modifiedFileName);
+	});
 
 	// get the blame (and file contents)
 	const blameJobs = getBlame(async (hash: string, fileName: string) => ({
